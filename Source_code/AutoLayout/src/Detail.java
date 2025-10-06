@@ -57,35 +57,47 @@ public class Detail {//Класс детали
 		normalize();
 		shiftX(0.1f); shiftY(0.1f); 
 	};
-	//Двойная проверка на пересечение деталей
 	public Boolean intersects(Detail other) {
-		//1.Построение из точек растровой фигуры и проверка на общие пиксели.
-		int n1 = vertices.size(), n2 = other.vertices.size();
-		int xPoints[] = new int[n1];
-		int yPoints[] = new int[n1];
-		int xPoints2[] = new int[n2];
-		int yPoints2[] = new int[n2];
-		for(int i = 0; i < n1; i++) {
-			xPoints[i] = vertices.get(i).intX(1000);
-			yPoints[i] = vertices.get(i).intY(1000);
-		}
-		for(int i = 0; i < n2; i++) {
-			xPoints2[i] = other.vertices.get(i).intX(1000);
-			yPoints2[i] = other.vertices.get(i).intY(1000);
-		}
-		var figure = new Polygon(xPoints, yPoints, n1);
-		var figure2 = new Polygon(xPoints2, yPoints2, n2);	
-		//Если одна фигура содержит вершину другой, то пересечение есть
-		for(int i = 0; i < n2; i++) 
-			if(figure.contains(xPoints2[i], yPoints2[i])) return true;
-		for(int i = 0; i < n1; i++) 
-			if(figure2.contains(xPoints[i], yPoints[i])) return true;
-		//2.Проверка пересечения отрезков с использованием векторного произведения
-		for(int i = 1; i < vertices.size(); i++) 
-			for(int j = 1; j < other.vertices.size(); j++) 
-				if(doIntersect(vertices.get(i - 1), vertices.get(i), other.vertices.get(j - 1), other.vertices.get(j))) return true;
-		return false;
-	}//Двойная проверка нужна для минимизаций искажений при расчётах.
+	    // Быстрая проверка по ограничивающим прямоугольникам
+	    float aMinX = minX(), aMaxX = Xmax(), aMinY = minY(), aMaxY = Ymax();
+	    float bMinX = other.minX(), bMaxX = other.Xmax(), bMinY = other.minY(), bMaxY = other.Ymax();
+	    if (aMaxX < bMinX || bMaxX < aMinX || aMaxY < bMinY || bMaxY < aMinY) return false;
+
+	    // Если размеры малы (малое число вершин) — делаем простые проверки
+	    int n1 = vertices.size(), n2 = other.vertices.size();
+	    if (n1 < 3 || n2 < 3) return false;
+
+	    // 1) Проверка пересечения отрезков (быстрая и часто достаточная)
+	    for (int i = 1; i < n1; i++)
+	        for (int j = 1; j < n2; j++)
+	            if (doIntersect(vertices.get(i - 1), vertices.get(i), other.vertices.get(j - 1), other.vertices.get(j)))
+	                return true;
+
+	    // 2) Проверка: если одна фигура содержит вершину другой (точный тест)
+	    // Сформируем Polygon только в случае, если другие тесты не дали результата
+	    int xPoints[] = new int[n1];
+	    int yPoints[] = new int[n1];
+	    int xPoints2[] = new int[n2];
+	    int yPoints2[] = new int[n2];
+	    for (int i = 0; i < n1; i++) {
+	        xPoints[i] = vertices.get(i).intX(1000);
+	        yPoints[i] = vertices.get(i).intY(1000);
+	    }
+	    for (int i = 0; i < n2; i++) {
+	        xPoints2[i] = other.vertices.get(i).intX(1000);
+	        yPoints2[i] = other.vertices.get(i).intY(1000);
+	    }
+	    var figure = new java.awt.Polygon(xPoints, yPoints, n1);
+	    var figure2 = new java.awt.Polygon(xPoints2, yPoints2, n2);
+
+	    for (int i = 0; i < n2; i++)
+	        if (figure.contains(xPoints2[i], yPoints2[i])) return true;
+	    for (int i = 0; i < n1; i++)
+	        if (figure2.contains(xPoints[i], yPoints[i])) return true;
+
+	    return false;
+	}
+
 	private boolean doIntersect(dot p1, dot q1, dot p2, dot q2) {
 		return cross(p1, q1, p2) != cross(p1, q1, q2) && cross(p2, q2, p1) != cross(p2, q2, q1);
     }

@@ -63,7 +63,7 @@ public class Form1 extends JFrame
 	JPopupMenu rightClick = new JPopupMenu();
 	JPopupMenu popupMenu1 = new JPopupMenu();
 	JPopupMenu popupMenu2 = new JPopupMenu();
-	JScrollPane canvas = new JScrollPane(); 
+	JScrollPane canvas = new JScrollPane();
 	JScrollPane hierarchy;
 	JScrollPane editScroll;
 	JMenuItem delete = new JMenuItem("Удалить");
@@ -75,6 +75,7 @@ public class Form1 extends JFrame
 	List<NumericField> Yfields = new ArrayList<>();
 	List<Product> Backup = new ArrayList<>();
 	List<Integer> Selected = new ArrayList<>();
+	long pressTime, clickDuration;
 	Form1(Product t, String file) 
 	{	
 		filePath = file;
@@ -124,7 +125,7 @@ public class Form1 extends JFrame
 		hierarchy = new JScrollPane(tree);
 		detail = product.details.get(0);
     	
-		timer = new Timer(5, e -> {//Обновление изображения деталей 200 раз в секунду
+		timer = new Timer(10, e -> {//Обновление изображения деталей 100 раз в секунду
 			if(!product.rascladMode) {
 				for(int i = 0; i < detail.vertices.size(); i++) {
 					try {
@@ -142,13 +143,26 @@ public class Form1 extends JFrame
 	        }
 			else Rasclad(0);	 
 		});
-			
         timer.start();
+        
+        
         canvas.addMouseListener(new MouseAdapter() {
-            @Override//Обработка клика по холсту для разметки лекал деталей
+        	
+        	@Override
             public void mousePressed(MouseEvent e) {
+                // Запоминаем момент нажатия
+                if (SwingUtilities.isLeftMouseButton(e)) pressTime = System.currentTimeMillis();
+
+                // Правая кнопка — контекстное меню
+                else if (!product.rascladMode && SwingUtilities.isRightMouseButton(e)) rightClick.show(canvas, e.getX(), e.getY());
+
+            }
+            @Override//Обработка клика по холсту для разметки лекал деталей
+            public void mouseReleased(MouseEvent e) {
+            	
+                clickDuration = System.currentTimeMillis() - pressTime;
             	if(!product.rascladMode) {//Если режим ракладки выключен, то происходит рисование новой детали по точкам.
-                	if (SwingUtilities.isLeftMouseButton(e)) {
+                	if (SwingUtilities.isLeftMouseButton(e) && clickDuration < 200) {
                 		if(detail.vertices.size() > 0) detail.current++;
                 		detail.vertices.add(detail.current, new dot(e.getX() * 1f / H / product.scaling, e.getY() * 1f / H / product.scaling));
                 		product.changed = true;
@@ -174,7 +188,119 @@ public class Form1 extends JFrame
             		}
             	}
             }
-        });         	           	                 	    
+        });   
+        canvas.addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                try {
+                    if (detail == null) return;
+                    if (detail.vertices.size() <= 1) return; // нечего вращать
+                    // Один "щелчок" колёсика — 5 градусов (можно изменить)
+                    if (detail.minX() < 0) detail.shiftX(-detail.minX());
+                    if (detail.minY() < 0) detail.shiftY(-detail.minY());
+                    detail.rotate(e.getWheelRotation());
+                    // В режиме раскладки отменяем вращение при пересечении с другими деталями
+                    if (product.rascladMode) {
+                        for (var d : product.details) {
+                            if (d != detail && detail.intersects(d)) {
+                                // откатить вращение
+                                detail.rotate(-e.getWheelRotation());
+                                break;
+                            }
+                        }
+                    }
+                    updateFields(0);
+                    reDraw(detail, canvas.getGraphics(), 0);
+                } catch (Exception ex) { /* игнорируем ошибки */ }
+            }
+        });
+        canvas.addMouseMotionListener(new MouseMotionAdapter() {
+            Point last = null;
+            @Override
+            public void mouseDragged(MouseEvent e) {
+            	if(clickDuration < 300 && !product.rascladMode) return;
+                if (detail == null) return; // если нет выбранной детали — ничего не делаем
+                if (!SwingUtilities.isLeftMouseButton(e)) { 
+                    last = null; 
+                    return; 
+                }
+
+                int H = canvas.getHeight();
+                int W = canvas.getWidth();
+                if (H == 0 || product == null) return;
+
+                if (last == null) { 
+                    last = e.getPoint(); 
+                    return; 
+                }
+
+                float dxPixels = e.getX() - last.x;
+                float dyPixels = e.getY() - last.y;
+                last = e.getPoint();
+
+                float dx = dxPixels / (H * product.scaling);
+                float dy = dyPixels / (H * product.scaling);
+
+                float remainingX = dx;
+                float remainingY = dy;
+                float step = 0.005f; // маленький пошаговый сдвиг, чтобы "упираться" в другие детали
+
+                // === Перемещение по X ===
+                while (Math.abs(remainingX) > 1e-6f) {
+                    float s = Math.signum(remainingX) * Math.min(step, Math.abs(remainingX));
+
+                    // ограничение по левой границе
+                    if (detail.minX() + s < 0) {
+                        s = -detail.minX();
+                        if (Math.abs(s) < 1e-6f) break;
+                    }
+
+                    detail.shiftX(s);
+
+                    boolean coll = false;
+                    if (product.rascladMode) 
+                        for (var d : product.details)
+                            if (d != detail && detail.intersects(d)) { coll = true; break; }
+
+                    if (coll) { 
+                        detail.shiftX(-s); 
+                        break; 
+                    }
+                    remainingX -= s;
+                }
+                // === Перемещение по Y ===
+                while (Math.abs(remainingY) > 1e-6f) {
+                    float s = Math.signum(remainingY) * Math.min(step, Math.abs(remainingY));
+
+                    // ограничение по верхней границе
+                    if (detail.minY() + s < 0) {
+                        s = -detail.minY();
+                        if (Math.abs(s) < 1e-6f) break;
+                    }
+
+                    detail.shiftY(s);
+
+                    boolean coll = false;
+                    if (product.rascladMode) 
+                        for (var d : product.details)
+                            if (d != detail && detail.intersects(d)) { coll = true; break; }
+
+                    if (coll) { 
+                        detail.shiftY(-s); 
+                        break; 
+                    }
+
+                    remainingY -= s;
+                }
+                reDraw(detail, canvas.getGraphics(), 0);
+                updateFields(0);
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                last = null; // сбрасываем начальную точку при обычном движении мыши
+            }
+        });
         saveAS.addActionListener(e -> saveFileAs());
         saveItem.addActionListener(e -> saveFile());
         loadItem.addActionListener(e -> openFile());
@@ -212,6 +338,7 @@ public class Form1 extends JFrame
                 detail.onRasclad = e.getStateChange() == ItemEvent.SELECTED;
             }
         });       
+        canvas.setDoubleBuffered(true);
         canvas.setToolTipText("Клавиши W, A, S, D - сдвиг, Q и E - вращение");
         
         fileMenu.add(createItem);
@@ -410,7 +537,7 @@ public class Form1 extends JFrame
                 	if(product.rascladMode) 
                 		for(var d : product.details)
                 			if(d != detail && detail.intersects(d)) {
-                				detail.shiftX(0.02f);
+                				detail.shiftX(0.01f);
                 				break;
                 			}
             }    
@@ -424,7 +551,7 @@ public class Form1 extends JFrame
             		if(product.rascladMode) 
                     	for(var d : product.details)
                     		if(d != detail && detail.intersects(d)) {
-                    			detail.shiftX(-0.02f);
+                    			detail.shiftX(-0.01f);
                     			break;
                     		}
             		updateFields(0);
@@ -440,7 +567,7 @@ public class Form1 extends JFrame
         		if(product.rascladMode) 
                 	for(var d : product.details)
                 		if(d != detail && detail.intersects(d)) {
-                			detail.shiftY(0.02f);
+                			detail.shiftY(0.01f);
                 			break;
                 		}
         	}	   
@@ -448,20 +575,22 @@ public class Form1 extends JFrame
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), "upW");
         actionMap.put("upW", up);
         
+   
+        
         Action down = new AbstractAction() {
             public void actionPerformed(ActionEvent e) { 
             	detail.shiftY(0.01f); 
             	if(product.rascladMode) 
                 		for(var d : product.details)
                 			if(d != detail && detail.intersects(d)) {
-                				detail.shiftY(-0.02f);
+                				detail.shiftY(-0.01f);
                 				break;
                 			}	 
             	updateFields(0);
            	}
         };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "down");
-        actionMap.put("down", down);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "downS");
+        actionMap.put("downS", down);
         
         Action Erotate = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -497,6 +626,7 @@ public class Form1 extends JFrame
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, 0), "Q");
         actionMap.put("Q", Qrotate);
 	}
+	
 	private void reDraw(Detail d, Graphics g, int param) //Функция для отрисовки детали
 	{	
 		if(g == null) return;
@@ -580,7 +710,7 @@ public class Form1 extends JFrame
 			}	
 			scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
 			product.changed = false;
-			product.setProperties();		
+			product.getProperties();		
 			area.setText("Параметры изделия");				
 		}
 		else JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.ERROR_MESSAGE);	
@@ -600,6 +730,7 @@ public class Form1 extends JFrame
 		else JOptionPane.showMessageDialog(null, "Площадь детали = " + detail.S() + " cм2", "Площадь детали", JOptionPane.INFORMATION_MESSAGE);	
 	}
 	private void saveAsk() {
+		if(product.totalVertices() == 0 && product.details.size() < 2) return;
 		var selection = JOptionPane.showConfirmDialog(this, "Сохранить текущие данные?", "Сохранение данных", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if(selection == 0) saveFileAs();
 	}

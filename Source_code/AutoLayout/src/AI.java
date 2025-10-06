@@ -20,7 +20,7 @@ public class AI extends Thread {
 		try {//Раскладка деталей в случайном порядке со случайным вращением
 			for(m = 0; m <= accuracy; m++) {
 				if(Indicator.getValue() == 1000) break;
-				if(m % 100 == 0) updateWindow();
+				if(m % 100 == 0) updateWindow(m);
 				var used = new ArrayList<Detail>();
 				Product t = new Product(a, 1);	
 				for(n = t.details.size(), i = 0; i < n; i++) {
@@ -82,19 +82,22 @@ public class AI extends Thread {
 					for(var d : used) a.details.get(d.index).vertices = d.vertices;		
 				}		
 			}
-			updateWindow();
 			Main.updateFields(1);
 			Thread.sleep(100);
 			Form.dispose();
-			Main.setState(JFrame.MAXIMIZED_BOTH);
-			Main.setVisible(true);
+			SwingUtilities.invokeLater(() -> {
+			    Main.setState(JFrame.MAXIMIZED_BOTH);
+			    Main.setVisible(true);
+			});
 			
 		}
 		catch(Exception e) {}
 	}
-	private void updateWindow() {
-		int progress = (int)(m * 1000f / accuracy);
-		if(progress > Indicator.getValue()) Indicator.setValue(progress);
-		Label.setText("ИИ-раскладка завершена на " + progress / 10f + "%");
-	}
+	private void updateWindow(int m) {
+		int progress = (int) (m * 1000f / Math.max(1, accuracy));
+        SwingUtilities.invokeLater(() -> {
+            if (progress > Indicator.getValue()) Indicator.setValue(progress);
+            Label.setText("ИИ-раскладка завершена на " + (progress / 10f) + "%");
+        }); 
+    }
 }//Отбор наиболее эффективных раскладок из случайных является ЭЛЕМЕНТОМ искусственного интеллекта

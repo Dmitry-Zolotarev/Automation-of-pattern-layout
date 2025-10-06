@@ -228,6 +228,16 @@ public class Product {//Класс для описания абстрактно�
 	public float rectArea() {
 		return listHeight * listWidth * 10000;
 	}
+	public float Xmax() {
+		float Xmax = 0;
+		for(var d: details) if(d.Xmax() > Xmax) Xmax = d.Xmax();
+		return Xmax;
+	}
+	public float Ymax() {
+		float Ymax = 0;
+		for(var d: details) if(d.Ymax() > Ymax) Ymax = d.Ymax();
+		return Ymax;
+	}
 	private void createDoc() {
 		try {
 	        doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
@@ -282,19 +292,22 @@ public class Product {//Класс для описания абстрактно�
     		root.add(file);  		
     	}
     }
-    public void setProperties() {
-		String[] array = {
-				"Название: " + name,
-				"Описание: " + description,
-				"Суммарная площадь деталей: " + (int) Area() + " cм2.",
-				"Размеры полотна:", 
-				"Длина: " + Math.round(listWidth * 1000) + " мм;", 
-				"Ширина: " + Math.round(listHeight * 1000) + " мм;",	
-				"Межлекальных отходов: " + (int)((rectArea() - Area()) / rectArea() * 1000) / 10f + "%"};					
+    public void getProperties() {
+    	String[] array = {"Ошибка: есть лекала, выходящие за полотно!"};
+    	if(Ymax() <= listHeight) {
+    		String[] array2 = {
+    				"Название: " + name,
+    				"Описание: " + description,
+    				"Суммарная площадь деталей: " + (int) Area() + " cм2.",
+    				"Размеры полотна:", 
+    				"Длина: " + Math.round(listWidth * 1000) + " мм;", 
+    				"Ширина: " + Math.round(listHeight * 1000) + " мм;",	
+    				"Межлекальных отходов: " + (int)((rectArea() - Area()) / rectArea() * 1000) / 10f + "%"};
+    		array = array2;
+    	}						
         StringBuilder sb = new StringBuilder("<html>");
         for (String str : array) sb.append(str).append("<br>");
         sb.append("</html>");
-        properties = sb.toString();
-        
+        properties = sb.toString();       
 	}
 }
