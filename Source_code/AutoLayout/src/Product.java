@@ -152,7 +152,7 @@ public class Product {//Класс для описания абстрактно�
 	private void AImode(float distance, float height) {  
 		try {
 			int n = details.size(), accuracy = 0;
-			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 100);
+			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 1000);
 			if(input == null) {
 				findRect(0, listHeight, 1);
 				main.setVisible(true);
@@ -247,7 +247,7 @@ public class Product {//Класс для описания абстрактно�
 	        productElement.setAttribute("Свойства", properties);
 	        productElement.setAttribute("Ширина_полотна", Float.toString(listHeight));
 	        productElement.setAttribute("Длина_полотна", Float.toString(listWidth));
-	        productElement.setAttribute("Масштаб", Float.toString(scaling * 1.1f));
+	        productElement.setAttribute("Масштаб", Float.toString(scaling));
 	        productElement.setAttribute("Было_ли_редактирование", Boolean.toString(changed));
 	        doc.appendChild(productElement);
 	        if (!details.isEmpty()) {

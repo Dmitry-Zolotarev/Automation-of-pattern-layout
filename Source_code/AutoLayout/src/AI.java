@@ -81,11 +81,10 @@ public class AI extends Thread {
 					a.listWidth = t.listWidth;
 					for(var d : used) a.details.get(d.index).vertices = d.vertices;		
 				}		
-			}
-			Main.updateFields(1);
-			Thread.sleep(100);
-			Form.dispose();
+			}		
 			SwingUtilities.invokeLater(() -> {
+				Main.updateFields(1);
+				Form.dispose();
 			    Main.setState(JFrame.MAXIMIZED_BOTH);
 			    Main.setVisible(true);
 			});

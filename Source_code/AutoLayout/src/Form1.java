@@ -691,7 +691,6 @@ public class Form1 extends JFrame
 							}//Установление масшатаба
 					product.scaling = 1.52f / product.listWidth;	
 					if(product.scaling > 1f) product.scaling = 1f;
-					if(product.listHeight * product.scaling >= 1f) product.scaling *= 0.9f;
 					scale.setText("Масштаб: "+ Math.round(product.scaling * 100) + "%");
 					updateFields(0); 
 				}	
