@@ -712,7 +712,6 @@ public class Form1 extends JFrame
 				g.setColor(Color.cyan);
 				g.drawRect(0, 0, (int)(product.listWidth * H * product.scaling) + 4, (int)(product.listHeight * H * product.scaling) + 4);
 			}
-			if(mode > 0) product.scaling *= 0.9f;
 			
 			scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
 			

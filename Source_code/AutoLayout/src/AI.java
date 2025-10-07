@@ -107,7 +107,11 @@ public class AI extends Thread {
             // Завершение — безопасное обновление интерфейса
             SwingUtilities.invokeLater(() -> {
                 a.rascladMode = true;
+                a.scaling = 1.52f / a.listWidth;	
+				if(a.scaling > 1f) a.scaling = 1f;
+				
                 if (Main != null) {
+					Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
                     Main.product = a;
                     Main.setVisible(true);
                 }
