@@ -17,7 +17,6 @@ public class Form1 extends JFrame
 	JMenuItem loadItem = new JMenuItem("Открыть");
 	JMenuItem saveItem = new JMenuItem("Сохранить");
 	JMenuItem saveAS = new JMenuItem("Сохранить как");
-	
 	JMenuItem rotate = new JMenuItem("Повернуть (Alt + R)");
 	JMenuItem horizontal = new JMenuItem("Отразить по горизонтали (Alt + H)");
 	JMenuItem vertical = new JMenuItem("Отразить по вертикали (Alt + V)");
@@ -53,7 +52,6 @@ public class Form1 extends JFrame
     JButton saveImage = new JButton("Сохранить как PNG");
     JButton area = new JButton("Площадь детали");
     JButton scale = new JButton("Масштаб: 100%");
-    String filePath = "";
 	JTextArea editPanel = new JTextArea();
 	JFileChooser createProject = new JFileChooser();
 	Timer timer; 
@@ -78,14 +76,16 @@ public class Form1 extends JFrame
 	long pressTime, clickDuration;
 	Form1(Product t, String file) 
 	{	
-		filePath = file;
-		product = t; recordAction();
+		
+		product = t; 
+		product.filePath = file;
+		recordAction();
 		product.main = this;
 		tree = new JTree(product.root);	
 		detail = product.details.get(selected);
 		popupMenu1 = new JPopupMenu();
         var rename = new JMenuItem("Переименовать");
-        rename.addActionListener(e -> renameDetail());
+        rename.addActionListener(e -> rename());
         var duplicate = new JMenuItem("Дублировать");
         duplicate.addActionListener(e -> addDetail(new Detail(detail), 1, selected));
         exitRasclad2.addActionListener(e -> exitRasclad());
@@ -100,7 +100,7 @@ public class Form1 extends JFrame
         
         var popupMenu3 = new JPopupMenu();
         var rename2 = new JMenuItem("Переименовать");
-        rename2.addActionListener(e -> renameDetail());
+        rename2.addActionListener(e -> rename());
         var setDescription = new JMenuItem("Редактировать описание");
         setDescription.addActionListener(e -> setDescription());
         popupMenu3.add(rename2);
@@ -144,8 +144,7 @@ public class Form1 extends JFrame
 			else Rasclad(0);	 
 		});
         timer.start();
-        
-        
+                
         canvas.addMouseListener(new MouseAdapter() {
         	
         	@Override
@@ -369,9 +368,9 @@ public class Form1 extends JFrame
 		
 		menuBar.add(fileMenu);
 		menuBar.add(rascladMenu);
-		menuBar.add(helpMenu);
 		menuBar.add(editMenu);
-		 
+		menuBar.add(helpMenu);
+		
 		toolBar.setBackground(new Color(240, 240, 240));
 		toolBar.add(save);
         toolBar.addSeparator();
@@ -388,12 +387,17 @@ public class Form1 extends JFrame
         toolBar.addSeparator();
         toolBar.add(onRasclad);
         
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, hierarchy, canvas);
+		
+		
 		canvas.getViewport().setPreferredSize(new Dimension(850, 0));
-		hierarchy.getViewport().setPreferredSize(new Dimension(180, 0));
+		hierarchy.getViewport().setPreferredSize(new Dimension(200, 0));
 		canvas.getViewport().setBackground(new Color(40, 80, 120));
 		editPanel.setBackground(new Color(240, 240, 240));
+		
 		editPanel.setEditable(false);
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, hierarchy, canvas);
+		splitPane.setEnabled(false);
+		splitPane.setDividerSize(0);
 		
 		scale.setToolTipText("Изменить масштаб");
 		thisDetail.setToolTipText("Текущая деталь");
@@ -413,7 +417,7 @@ public class Form1 extends JFrame
 		setSize(1280, 768);
 		setLayout(new BorderLayout());
 		setTitle("Автоматизация раскладки лекал");
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		
 		addWindowListener(new WindowListener() {
@@ -432,6 +436,7 @@ public class Form1 extends JFrame
 		add(toolBar, BorderLayout.NORTH);
 		add(splitPane, BorderLayout.CENTER);
 		setJMenuBar(menuBar);	
+		updateFields(0);
 	}
 	private void keyControl() {//Обработка нажатий и комбинаций клавиш
 		Action ctrlZ = new AbstractAction() {
@@ -692,7 +697,7 @@ public class Form1 extends JFrame
 					product.scaling = 1.52f / product.listWidth;	
 					if(product.scaling > 1f) product.scaling = 1f;
 					scale.setText("Масштаб: "+ Math.round(product.scaling * 100) + "%");
-					updateFields(0); 
+					updateFields(1); 
 				}	
 				else undo();
 			}
@@ -706,11 +711,15 @@ public class Form1 extends JFrame
 				for(var d : product.details) if(d.onRasclad) reDraw(d, g, 0);
 				g.setColor(Color.cyan);
 				g.drawRect(0, 0, (int)(product.listWidth * H * product.scaling) + 4, (int)(product.listHeight * H * product.scaling) + 4);
-			}	
+			}
+			if(mode > 0) product.scaling *= 0.9f;
+			
 			scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
+			
 			product.changed = false;
 			product.getProperties();		
-			area.setText("Параметры изделия");				
+			area.setText("Параметры изделия");	
+			
 		}
 		else JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.ERROR_MESSAGE);	
 	}		
@@ -729,12 +738,29 @@ public class Form1 extends JFrame
 		else JOptionPane.showMessageDialog(null, "Площадь детали = " + detail.S() + " cм2", "Площадь детали", JOptionPane.INFORMATION_MESSAGE);	
 	}
 	private void saveAsk() {
-		if(product.totalVertices() == 0 && product.details.size() < 2) return;
-		var selection = JOptionPane.showConfirmDialog(this, "Сохранить текущие данные?", "Сохранение данных", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if(selection == 0) saveFileAs();
-	}
+		if (product.totalVertices() == 0 && product.details.size() < 2) {
+            dispose(); // нет данных — просто закрываем
+            return;
+        }
+        int option = JOptionPane.showOptionDialog(
+            Form1.this,
+            "Сохранить текущие данные?",
+            "Сохранение данных",
+            JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            new Object[]{"Да", "Нет", "Отмена"},
+            "Да"
+        );
+        if (option == JOptionPane.YES_OPTION) {
+            saveFileAs();
+            dispose();
+        } else if (option == JOptionPane.NO_OPTION) {
+            dispose();
+        } 
+    }
 	private void saveFile() {
-		if(filePath != null && filePath.length() > 2) product.saveToFile(filePath);
+		if(product.filePath != null && product.filePath.length() > 2) product.saveToFile(product.filePath);
 		else saveFileAs();
 	}
 	private void openFile() {
@@ -746,10 +772,10 @@ public class Form1 extends JFrame
 	        
 	        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 	            File fileToSave = fileChooser.getSelectedFile();
-	            filePath = fileToSave.getAbsolutePath();
-	            if(filePath.endsWith(".xml")) {
+	            product.filePath = fileToSave.getAbsolutePath();
+	            if(product.filePath.endsWith(".xml")) {
 	            	saveAsk(); dispose();
-	            	new Form1(new Product(filePath), filePath);
+	            	new Form1(new Product(product.filePath), product.filePath);
 	            }
 	            else JOptionPane.showMessageDialog(null, "Неверное расширение файла!", "Ошибка", JOptionPane.ERROR_MESSAGE);            
 	        }
@@ -810,9 +836,9 @@ public class Form1 extends JFrame
         try {
         	if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File fileToSave = fileChooser.getSelectedFile();
-                filePath = fileToSave.getAbsolutePath();
-                product.saveToFile(filePath);
-                product = new Product(filePath);  
+                product.filePath = fileToSave.getAbsolutePath();
+                product.saveToFile(product.filePath);
+                product = new Product(product.filePath);  
             }
         }
         catch(Exception ex) {
@@ -825,7 +851,7 @@ public class Form1 extends JFrame
 		product.updateTree();
 		onRasclad.setVisible(!product.rascladMode);
 		if(editScroll != null) editScroll.setVisible(!product.rascladMode);
-		
+		if(editPanel != null) editPanel.setVisible(!product.rascladMode);
 		exitRasclad.setVisible(product.rascladMode);
 		exitRasclad2.setVisible(product.rascladMode);
 		
@@ -1014,7 +1040,13 @@ public class Form1 extends JFrame
     	select.setSelectionPath(tree.getPathForRow(0));
         if(mode == 0) {
         	String S = JOptionPane.showInputDialog("Введите название детали: ", t.name);
-        	if(S != null && S.length() > 0) t.name = S; 
+        	
+        	if(S != null && S.length() > 0) {
+        		if(S.length() > 30) {
+            		JOptionPane.showMessageDialog(null, "Название должно быть не больше 30 символов!", "Сообщение", JOptionPane.WARNING_MESSAGE);  
+            	}
+        		else t.name = S; 
+        	}
         }
         selected = index + 1; detail = t;
         product.details.add(selected, detail);
@@ -1042,7 +1074,7 @@ public class Form1 extends JFrame
             treeClick(0);
         }
 	}
-	private void renameDetail() 
+	private void rename() 
 	{//Переименование выбранной детали
 		TreePath path = tree.getPathForLocation(treeX, treeY);
 		TreePath path2 = tree.getPathForRow(0);
@@ -1059,6 +1091,10 @@ public class Form1 extends JFrame
         	else S0 = product.name;
         	String S = JOptionPane.showInputDialog("Введите новое имя: ", S0);
             if(S != null && S.length() > 0 && S != S0) {
+            	if(S.length() > 30) {
+            		JOptionPane.showMessageDialog(null, "Название должно быть не больше 30 символов!", "Сообщение", JOptionPane.WARNING_MESSAGE);  
+            		return;
+            	}
             	selectedNode.setUserObject(S); 
             	if(path == path2) product.name = S;
             	else d.name = S;
@@ -1076,7 +1112,7 @@ public class Form1 extends JFrame
 		String[] array = {
 				"Автоматизация раскладки лекал", 
 				"© Золотарёв Дмитрий Андреевич,", 
-				"Черненко Елена Александровна, 2024." };				
+				"Черненко Елена Александровна." };				
         StringBuilder sb = new StringBuilder("<html>");
         for (String str : array) sb.append(str).append("<br>");
         sb.append("</html>");

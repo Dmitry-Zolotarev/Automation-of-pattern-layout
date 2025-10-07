@@ -23,6 +23,7 @@ public class Product {//Класс для описания абстрактно�
 	DefaultMutableTreeNode root = null;
 	List<Detail> details = new ArrayList<>();
 	String name = "Новое изделие", description = "", properties = "";
+	String filePath = "";
 	Boolean rascladMode = false, changed = false;
 	Form1 main;
 	Document doc;
@@ -33,6 +34,7 @@ public class Product {//Класс для описания абстрактно�
 	}
 	public Product(Product other, int mode) {
 		name = other.name;
+		filePath = other.filePath;
 		description = other.description;
 		properties = other.properties;
 		listHeight = other.listHeight;
@@ -47,6 +49,7 @@ public class Product {//Класс для описания абстрактно�
 	}
 	public Product(String xmlFile) {
 	    try {
+	    	filePath = xmlFile;
 	        details.clear();
 	        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	        DocumentBuilder builder = factory.newDocumentBuilder();
@@ -58,6 +61,7 @@ public class Product {//Класс для описания абстрактно�
 	        listHeight = Float.parseFloat(rootElement.getAttribute("Ширина_полотна"));
 	        listWidth = Float.parseFloat(rootElement.getAttribute("Длина_полотна"));
 	        scaling = Float.parseFloat(rootElement.getAttribute("Масштаб"));
+	        rascladMode = Boolean.parseBoolean(rootElement.getAttribute("Раскладка"));
 	        changed = Boolean.parseBoolean(rootElement.getAttribute("Было_ли_редактирование"));
 	        NodeList detailNodes = rootElement.getElementsByTagName("Деталь");
 	        for (int i = 0; i < detailNodes.getLength(); i++) {
@@ -245,6 +249,7 @@ public class Product {//Класс для описания абстрактно�
 	        productElement.setAttribute("Имя", name);
 	        productElement.setAttribute("Описание", description);
 	        productElement.setAttribute("Свойства", properties);
+	        productElement.setAttribute("Раскладка", Boolean.toString(rascladMode));
 	        productElement.setAttribute("Ширина_полотна", Float.toString(listHeight));
 	        productElement.setAttribute("Длина_полотна", Float.toString(listWidth));
 	        productElement.setAttribute("Масштаб", Float.toString(scaling));
