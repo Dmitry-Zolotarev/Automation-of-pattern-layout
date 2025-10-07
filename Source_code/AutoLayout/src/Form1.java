@@ -1,4 +1,6 @@
 import javax.swing.tree.*;
+
+import java.awt.event.InputEvent;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +68,7 @@ public class Form1 extends JFrame
 	JScrollPane editScroll;
 	JMenuItem delete = new JMenuItem("Удалить");
 	JMenuItem exitRasclad2 = new JMenuItem("Редактировать деталь");
-	Boolean dotChanged = false;
+	Boolean dotChanged = false, didLayout = false;
 	int H = 0, W = 0, treeX = 0, treeY = 0, undoRedo = -1, selected = 0;
 	
 	List<NumericField> Xfields = new ArrayList<>();
@@ -125,24 +127,7 @@ public class Form1 extends JFrame
 		hierarchy = new JScrollPane(tree);
 		detail = product.details.get(0);
     	
-		timer = new Timer(10, e -> {//Обновление изображения деталей 100 раз в секунду
-			if(!product.rascladMode) {
-				for(int i = 0; i < detail.vertices.size(); i++) {
-					try {
-						float X = Float.parseFloat(Xfields.get(i).getText()) / 1000,
-							  Y = Float.parseFloat(Yfields.get(i).getText()) / 1000;
-						if(detail.vertices.get(i).X != X || detail.vertices.get(i).Y != Y) {
-							detail.vertices.get(i).X = X;
-							detail.vertices.get(i).Y = Y;
-							canvas.paint(canvas.getGraphics());
-							break;
-						}	
-	        		} catch (Exception ex) { break;}
-				}	
-				reDraw(detail, canvas.getGraphics(), 0);	
-	        }
-			else Rasclad(0);	 
-		});
+		timer = new Timer(10, e -> onTimer());//Обновление изображения деталей 100 раз в секунду
         timer.start();
                 
         canvas.addMouseListener(new MouseAdapter() {
@@ -242,7 +227,7 @@ public class Form1 extends JFrame
 
                 float remainingX = dx;
                 float remainingY = dy;
-                float step = 0.005f; // маленький пошаговый сдвиг, чтобы "упираться" в другие детали
+                float step = 0.005f;
 
                 // === Перемещение по X ===
                 while (Math.abs(remainingX) > 1e-6f) {
@@ -321,14 +306,14 @@ public class Form1 extends JFrame
         changeRasclad.addActionListener(e -> Rasclad(0));
         exitRasclad.addActionListener(e -> exitRasclad());
         area.addActionListener(e -> getArea());  
-        scale.addActionListener(e -> setScale());
+        scale.addActionListener(e -> setScale(0));
         undo.addActionListener(e -> undo());
         redo.addActionListener(e -> redo());
         about.addActionListener(e -> about());
         saveImage.addActionListener(e -> saveImage());
         
         createItem.addActionListener(e -> {	
-        	saveAsk(); dispose();
+        	saveAsk(true); dispose();
         	new Form1(new Product(), "");
         });
         onRasclad.addItemListener(new ItemListener() {
@@ -423,7 +408,7 @@ public class Form1 extends JFrame
 		addWindowListener(new WindowListener() {
 			public void windowActivated(WindowEvent event) {}
 			public void windowClosed(WindowEvent event) {}
-			public void windowClosing(WindowEvent event) {saveAsk();}
+			public void windowClosing(WindowEvent event) {saveAsk(true);}
 			public void windowDeactivated(WindowEvent event) {}
 			public void windowDeiconified(WindowEvent event) {}
 			public void windowIconified(WindowEvent event) {}
@@ -437,6 +422,24 @@ public class Form1 extends JFrame
 		add(splitPane, BorderLayout.CENTER);
 		setJMenuBar(menuBar);	
 		updateFields(0);
+	}
+	private void onTimer() {
+		if(!product.rascladMode) {
+			for(int i = 0; i < detail.vertices.size(); i++) {
+				try {
+					float X = Float.parseFloat(Xfields.get(i).getText()) / 1000,
+						  Y = Float.parseFloat(Yfields.get(i).getText()) / 1000;
+					if(detail.vertices.get(i).X != X || detail.vertices.get(i).Y != Y) {
+						detail.vertices.get(i).X = X;
+						detail.vertices.get(i).Y = Y;
+						canvas.paint(canvas.getGraphics());
+						break;
+					}	
+        		} catch (Exception ex) { break;}
+			}	
+			reDraw(detail, canvas.getGraphics(), 0);	
+        }
+		else Rasclad(0);	
 	}
 	private void keyControl() {//Обработка нажатий и комбинаций клавиш
 		Action ctrlZ = new AbstractAction() {
@@ -535,14 +538,16 @@ public class Form1 extends JFrame
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
         actionMap.put("Del", delete);
         
+        float delta = 0.01f;
+        
         Action left = new AbstractAction() {
             public void actionPerformed(ActionEvent e) { 
-            		if(detail.minX() >= 0.01f) detail.shiftX(-0.01f); 
+            		if(detail.minX() >= delta) detail.shiftX(-delta); 
                 	updateFields(0);
                 	if(product.rascladMode) 
                 		for(var d : product.details)
                 			if(d != detail && detail.intersects(d)) {
-                				detail.shiftX(0.01f);
+                				detail.shiftX(delta);
                 				break;
                 			}
             }    
@@ -552,11 +557,11 @@ public class Form1 extends JFrame
         
         Action right = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-            		detail.shiftX(0.01f); 
+            		detail.shiftX(delta); 
             		if(product.rascladMode) 
                     	for(var d : product.details)
                     		if(d != detail && detail.intersects(d)) {
-                    			detail.shiftX(-0.01f);
+                    			detail.shiftX(-delta);
                     			break;
                     		}
             		updateFields(0);
@@ -567,12 +572,12 @@ public class Form1 extends JFrame
         
         Action up = new AbstractAction() {
         	public void actionPerformed(ActionEvent e) { 
-        		if(detail.minY() >= 0.01f)detail.shiftY(-0.01f); 
+        		if(detail.minY() >= delta)detail.shiftY(-delta); 
                 updateFields(0);
         		if(product.rascladMode) 
                 	for(var d : product.details)
                 		if(d != detail && detail.intersects(d)) {
-                			detail.shiftY(0.01f);
+                			detail.shiftY(delta);
                 			break;
                 		}
         	}	   
@@ -580,15 +585,13 @@ public class Form1 extends JFrame
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), "upW");
         actionMap.put("upW", up);
         
-   
-        
         Action down = new AbstractAction() {
             public void actionPerformed(ActionEvent e) { 
             	detail.shiftY(0.01f); 
             	if(product.rascladMode) 
                 		for(var d : product.details)
                 			if(d != detail && detail.intersects(d)) {
-                				detail.shiftY(-0.01f);
+                				detail.shiftY(-delta);
                 				break;
                 			}	 
             	updateFields(0);
@@ -663,7 +666,48 @@ public class Form1 extends JFrame
 	        dotChanged = false;
 	    }	
 	}
+	private void setScale(int mode) {
+	    try {
+	        if (mode == 0) { // Ручной ввод масштаба
+	            product.scaling = Float.parseFloat(
+	                JOptionPane.showInputDialog("Введите масштаб в %: ")
+	            ) / 100f;
+	            if (product.scaling > 1f) product.scaling = 1f;
+	            if (product.scaling <= 0f) product.scaling = 1f;
+	            scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
+	            updateFields(0);
+	        }
+	        else if (mode == 1) { // Автоматическое масштабирование под окно
+	            // Расчёт масштабов по ширине и высоте
+	            float scaleByWidth  = (canvas.getWidth() * 0.9f) / (product.listWidth  * H);
+	            float scaleByHeight = (canvas.getHeight() * 0.9f) / (product.listHeight * H);
+	            // Берём минимальный, чтобы всё влезло
+	            product.scaling = Math.min(scaleByWidth, scaleByHeight);
+
+	            if (product.scaling > 1f) product.scaling = 1f;
+	            if (product.scaling <= 0f) product.scaling = 1f;
+	            scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
+	            if(dotChanged) {
+	            	updateFields(1);
+	            	dotChanged = false;
+	            }
+	        }
+	    }
+	    catch (Exception e) {
+	        // игнорируем неверный ввод
+	    }
+	}
+
 	void Rasclad(int mode) {//Функция для раскладки
+		if(product.rascladMode) {
+			setScale(1);//Установление масштаба
+		}
+		if(mode > 0) {
+			
+			updateFields(1);
+		}
+		
+		
 		if(product.details.size() == 1) {
 			detail.normalize();
 			updateFields(0);	
@@ -675,17 +719,18 @@ public class Form1 extends JFrame
 			if(d.onRasclad) count++;
 		}
 		if (count > 0) {
-			float distance = 0, height = product.listHeight;
+			float height = product.listHeight;
 			if(!product.rascladMode || mode > 0) {
 				if(mode > 0) try {
 					String input = JOptionPane.showInputDialog("Введите расстояние между лекалами в мм: ", 0);
-			        distance = Float.parseFloat(input) / 1000;
+			        product.distance = Float.parseFloat(input) / 1000;
 			        input = JOptionPane.showInputDialog("Введите ширину полотна в мм: ", (int)(product.listHeight * 1000));
 			        height = Float.parseFloat(input) / 1000;
 		        } 
 				catch (Exception e) { return; }    	
 				if(mode == 2) setVisible(false);
-				if(mode > 0 && product.findRect(distance, height, mode)) {
+				if(mode > 0 && product.findRect(height, mode)) {
+
 					product.rascladMode = true;	
 					if(!detail.onRasclad) 
 						for(var d : product.details) 
@@ -693,9 +738,7 @@ public class Form1 extends JFrame
 								detail = d;
 								selected = d.index;
 								break;
-							}//Установление масшатаба
-					product.scaling = 1.52f / product.listWidth;	
-					if(product.scaling > 1f) product.scaling = 1f;
+							}
 					scale.setText("Масштаб: "+ Math.round(product.scaling * 100) + "%");
 					updateFields(1); 
 				}	
@@ -722,24 +765,17 @@ public class Form1 extends JFrame
 		}
 		else JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.ERROR_MESSAGE);	
 	}		
-	private void setScale() {
-		try {
-			product.scaling = Float.parseFloat(JOptionPane.showInputDialog("Введите масштаб в %: ")) / 100;
-            scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
-            updateFields(0);
-		}
-		catch (Exception e) { }
-	}
+	
 	private void getArea() {
 		if(product.rascladMode) {
 			JOptionPane.showMessageDialog(null, product.properties, "Параметры изделия", JOptionPane.INFORMATION_MESSAGE);
 		}
 		else JOptionPane.showMessageDialog(null, "Площадь детали = " + detail.S() + " cм2", "Площадь детали", JOptionPane.INFORMATION_MESSAGE);	
 	}
-	private void saveAsk() {
+	private Boolean saveAsk(Boolean need_dispose) {
 		if (product.totalVertices() == 0 && product.details.size() < 2) {
-            dispose(); // нет данных — просто закрываем
-            return;
+            if(need_dispose) dispose(); // нет данных — просто закрываем
+            return true;
         }
         int option = JOptionPane.showOptionDialog(
             Form1.this,
@@ -754,9 +790,12 @@ public class Form1 extends JFrame
         if (option == JOptionPane.YES_OPTION) {
             saveFileAs();
             dispose();
+            return true;
         } else if (option == JOptionPane.NO_OPTION) {
             dispose();
+            return true;
         } 
+        return false;
     }
 	private void saveFile() {
 		if(product.filePath != null && product.filePath.length() > 2) product.saveToFile(product.filePath);
@@ -764,6 +803,7 @@ public class Form1 extends JFrame
 	}
 	private void openFile() {
 		try {
+			if(!saveAsk(false)) return;
 			var fileChooser = new JFileChooser();
 	        fileChooser.setDialogTitle("Открыть файл");
 	        var filter = new FileNameExtensionFilter("*.xml", "xml");
@@ -773,7 +813,7 @@ public class Form1 extends JFrame
 	            File fileToSave = fileChooser.getSelectedFile();
 	            product.filePath = fileToSave.getAbsolutePath();
 	            if(product.filePath.endsWith(".xml")) {
-	            	saveAsk(); dispose();
+	            	dispose();
 	            	new Form1(new Product(product.filePath), product.filePath);
 	            }
 	            else JOptionPane.showMessageDialog(null, "Неверное расширение файла!", "Ошибка", JOptionPane.ERROR_MESSAGE);            

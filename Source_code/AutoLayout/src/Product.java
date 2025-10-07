@@ -27,13 +27,14 @@ public class Product {//Класс для описания абстрактно�
 	Boolean rascladMode = false, changed = false;
 	Form1 main;
 	Document doc;
-	float listWidth = 0, listHeight = 1,  minX = 99, minY = 99, scaling = 1; 	
+	float listWidth = 0, listHeight = 1,  minX = 99, minY = 99, scaling = 1, distance = 0; 	
 	Product() { 
 		details.add(new Detail("Новая деталь"));
 		updateTree();
 	}
 	public Product(Product other, int mode) {
 		name = other.name;
+		distance = other.distance;
 		filePath = other.filePath;
 		description = other.description;
 		properties = other.properties;
@@ -98,7 +99,7 @@ public class Product {//Класс для описания абстрактно�
 		        }
 		    }
 	}
-	public Boolean findRect(float distance, float height, int mode) 
+	public Boolean findRect(float height, int mode) 
 	{//Нахождение прямоугольного листа с РАСКЛАДКОЙ ДЕТАЛЕЙ с заданной шириной и наименьшей длиной 
     	listHeight = height; 
     	for(int i = 0; i < details.size(); i++) {
@@ -158,12 +159,12 @@ public class Product {//Класс для описания абстрактно�
 			int n = details.size(), accuracy = 0;
 			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 1000);
 			if(input == null) {
-				findRect(0, listHeight, 1);
+				findRect(listHeight, 1);
 				main.setVisible(true);
 				return;
 			}
 			accuracy = Integer.parseInt(input) * n;	
-			findRect(distance, height, 1);
+			findRect(height, 1);
 			Detail d = new Detail();
 			//Инициализация окна, показывающего процент завершения раскладки.
 			var indicator = new JFrame();

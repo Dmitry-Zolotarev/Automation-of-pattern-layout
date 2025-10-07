@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import javax.swing.*;
 
+
 // Класс для мультипоточного умного алгоритма раскладки
 public class AI extends Thread {
     Product a, b;
@@ -65,7 +66,7 @@ public class AI extends Thread {
                     }
 
                     if (i > 0) {
-                        if (H + d.Ymax() <= a.listHeight) d.shiftY(H);
+                        if (H + d.Ymax() + distance <= a.listHeight) d.shiftY(H);
                         d.shiftX(t.listWidth + distance);
 
                         // Сдвиг деталей влево и вниз, пока не будет пересечения с другой деталью или краем полотна
@@ -107,17 +108,14 @@ public class AI extends Thread {
             // Завершение — безопасное обновление интерфейса
             SwingUtilities.invokeLater(() -> {
                 a.rascladMode = true;
-                a.scaling = 1.52f / a.listWidth;	
-				if(a.scaling > 1f) a.scaling = 1f;
 				
-                if (Main != null) {
-					Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
-                    Main.product = a;
-                    Main.setVisible(true);
-                }
-                else {
-                	Main = new Form1(a, a.filePath);
-                }
+                if (Main == null) Main = new Form1(a, a.filePath);
+                Main.updateFields(0);
+				Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
+                Main.product = a;
+                Main.setVisible(true);
+                Main.updateFields(0);
+                Main.dotChanged = true;
                 if (Form != null) Form.dispose();
             });
 
