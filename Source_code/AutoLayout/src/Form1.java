@@ -171,7 +171,8 @@ public class Form1 extends JFrame
             			}
             		}
             	}
-            }
+            	updateFields(1);
+            } 
         });   
         canvas.addMouseWheelListener(new MouseWheelListener() {
             @Override
@@ -406,13 +407,15 @@ public class Form1 extends JFrame
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		
 		addWindowListener(new WindowListener() {
-			public void windowActivated(WindowEvent event) {}
+			public void windowActivated(WindowEvent event) {
+			}
 			public void windowClosed(WindowEvent event) {}
 			public void windowClosing(WindowEvent event) {saveAsk(true);}
 			public void windowDeactivated(WindowEvent event) {}
 			public void windowDeiconified(WindowEvent event) {}
 			public void windowIconified(WindowEvent event) {}
-			public void windowOpened(WindowEvent event) {}
+			public void windowOpened(WindowEvent event) {
+			}
 		});
 		editScroll = new JScrollPane(editPanel);
 		editScroll.setPreferredSize(new Dimension(220, 0)); 
@@ -421,9 +424,15 @@ public class Form1 extends JFrame
 		add(toolBar, BorderLayout.NORTH);
 		add(splitPane, BorderLayout.CENTER);
 		setJMenuBar(menuBar);	
-		updateFields(0);
+		
 	}
 	private void onTimer() {
+		if(H != canvas.getHeight() || W != canvas.getWidth()) {
+			
+			H = canvas.getHeight();
+			W = canvas.getWidth();
+			updateFields(0);
+		}
 		if(!product.rascladMode) {
 			for(int i = 0; i < detail.vertices.size(); i++) {
 				try {
@@ -440,6 +449,7 @@ public class Form1 extends JFrame
 			reDraw(detail, canvas.getGraphics(), 0);	
         }
 		else Rasclad(0);	
+		
 	}
 	private void keyControl() {//Обработка нажатий и комбинаций клавиш
 		Action ctrlZ = new AbstractAction() {
@@ -641,8 +651,6 @@ public class Form1 extends JFrame
 	    int i, n = d.vertices.size();
 	    int[] xPoints = new int[n];
 	    int[] yPoints = new int[n];
-	    H = canvas.getHeight(); 
-	    W = canvas.getWidth();
 	    for(i = 0; i < n; i++) {
             xPoints[i] = d.vertices.get(i).intX(H * product.scaling);
             yPoints[i] = d.vertices.get(i).intY(H * product.scaling);
@@ -817,7 +825,11 @@ public class Form1 extends JFrame
 	            }
 	            else JOptionPane.showMessageDialog(null, "Неверное расширение файла!", "Ошибка", JOptionPane.ERROR_MESSAGE);            
 	        }
-	        else return;
+	        else {
+	        	dispose();
+	        	new Form1(product, product.filePath);
+	        	JOptionPane.showMessageDialog(null, "Открытие файла отменено.", "Сообщение", JOptionPane.INFORMATION_MESSAGE);
+	        };
 		}
 		catch(Exception ex) {
 			JOptionPane.showMessageDialog(null, "Данные в файле повреждены!", "Ошибка", JOptionPane.ERROR_MESSAGE);

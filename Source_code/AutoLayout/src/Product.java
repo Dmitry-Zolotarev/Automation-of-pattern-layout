@@ -49,7 +49,7 @@ public class Product {//Класс для описания абстрактно�
 	    	}	
 	}
 	public Product(String xmlFile) {
-	    try {
+	    try {	    	
 	    	filePath = xmlFile;
 	        details.clear();
 	        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -134,19 +134,23 @@ public class Product {//Класс для описания абстрактно�
         		}//Сдвиг деталей влево и вверх, пока не будет пересения с другой деталью, либо с краем полотна.
         		float minX = d.minX(), minY = d.minY();
         		for(Boolean flag = true; flag && minX >= 0.02f; d.shiftX(-0.02f), minX -= 0.02f)
-        			for(int j = i - 1; j >= 0; j--) 
-            			if(d.intersects(t.details.get(j)) ) {
+        			for(int j = i - 1; j >= 0; j--) {
+        				if(d.intersects(t.details.get(j)) ) {
             				flag = false; 
             				d.shiftX(0.04f + distance);
             				break;
             			}
+        			}
+            			
         		for(Boolean flag = true; flag && minY >= 0.02f; d.shiftY(-0.02f), minY -= 0.02f)
-        			for(int j = i - 1; j >= 0; j--) 
-            			if(d.intersects(t.details.get(j)) ) {
+        			for(int j = i - 1; j >= 0; j--) {
+        				if(d.intersects(t.details.get(j)) ) {
             				flag = false; 
             				d.shiftY(0.04f + distance);
             				break;
             			}
+        			}
+            			
         		details.get(d.index).vertices = d.vertices;
         		if(d.Xmax() > listWidth) listWidth = d.Xmax(); 	
     		}	
@@ -157,7 +161,7 @@ public class Product {//Класс для описания абстрактно�
 	private void AImode(float distance, float height) {  
 		try {
 			int n = details.size(), accuracy = 0;
-			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 100);
+			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 1000);
 			if(input == null) {
 				findRect(listHeight, 1);
 				main.setVisible(true);
