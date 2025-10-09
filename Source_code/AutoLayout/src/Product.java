@@ -157,13 +157,13 @@ public class Product {//Класс для описания абстрактно�
 	private void AImode(float distance, float height) {  
 		try {
 			int n = details.size(), accuracy = 0;
-			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 1000);
+			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 100);
 			if(input == null) {
 				findRect(listHeight, 1);
 				main.setVisible(true);
 				return;
 			}
-			accuracy = Integer.parseInt(input) * n;	
+			accuracy = Integer.parseInt(input) * n * n;	
 			findRect(height, 1);
 			Detail d = new Detail();
 			//Инициализация окна, показывающего процент завершения раскладки.
@@ -264,8 +264,8 @@ public class Product {//Класс для описания абстрактно�
 		                detailElement.setAttribute("На_раскладку", Boolean.toString(detail.onRasclad));
 		                for (dot vertex : detail.vertices) {
 		                    Element vertexElement = doc.createElement("Точка");
-		                    vertexElement.setAttribute("X", Float.toString(vertex.X));
-		                    vertexElement.setAttribute("Y", Float.toString(vertex.Y));
+		                    vertexElement.setAttribute("X", String.format("%.3f", vertex.X));
+		                    vertexElement.setAttribute("Y", String.format("%.3f", vertex.Y));
 		                    detailElement.appendChild(vertexElement);
 		                }	                
 		                productElement.appendChild(detailElement);

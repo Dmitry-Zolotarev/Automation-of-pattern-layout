@@ -31,7 +31,7 @@ public class AI extends Thread {
             // Раскладка деталей в случайном порядке со случайным вращением
             for (m = 0; m <= accuracy; m++) {
                 if (Indicator != null && Indicator.getValue() == 1000) break;
-                if (m % 100 == 0) updateWindow(m);
+                if (m % 1000 == 0) updateWindow(m);
 
                 var used = new ArrayList<Detail>();
                 Product t = new Product(a, 1);
@@ -40,8 +40,7 @@ public class AI extends Thread {
                     if (i > 0) previous = d;
                     k = (int) (Math.random() * (n - i));
                     d = t.details.get(k);
-                    d.normalize();
-
+ 
                     if (d.Xmax() <= a.listHeight) {
                         l = (int) (Math.random() * 4);
                         d.rotate(90 * l);
@@ -52,59 +51,45 @@ public class AI extends Thread {
 
                     l = (int) (Math.random() * 2);
                     if (l == 0) d.flipHorizontal();
-
+                    d.normalize();	
                     l = (int) (Math.random() * 2);
                     if (l == 0) d.flipVertical();
 
-                    d.normalize();
-
                     float H = previous.Ymax() + distance;
-                    if (H + d.Ymax() > a.listHeight) {
-                        l = (int) (Math.random() * 4);
-                        d.rotate(90);
-                        d.normalize();
-                    }
 
                     if (i > 0) {
                         if (H + d.Ymax() + distance <= a.listHeight) d.shiftY(H);
                         d.shiftX(t.listWidth + distance);
-
                         // Сдвиг деталей влево и вниз, пока не будет пересечения с другой деталью или краем полотна
-                        float minX = d.minX(), minY = d.minY();
-
-                        for (boolean flag = true; flag && minX >= 0.02f; d.shiftX(-0.02f), minX -= 0.02f)
+                        float minX = d.minX(), minY = d.minY(), delta = 0.02f;
+                        for (boolean flag = true; flag && minX >= delta; d.shiftX(-delta), minX -= delta)
                             for (j = 0; j < i; j++)
                                 if (d.intersects(used.get(j))) {
                                     flag = false;
-                                    d.shiftX(0.04f + distance);
+                                    d.shiftX(delta * 2 + distance);
                                     break;
                                 }
-
                         if (a.listWidth > 0 && d.Xmax() > a.listWidth) {
                             t.listWidth = a.listWidth;
                             break;
                         }
-
-                        for (boolean flag = true; flag && minY >= 0.02f; d.shiftY(-0.02f), minY -= 0.02f)
+                        for (boolean flag = true; flag && minY >= delta; d.shiftY(-delta), minY -= delta)
                             for (j = 0; j < i; j++)
                                 if (d.intersects(used.get(j))) {
                                     flag = false;
-                                    d.shiftY(0.04f + distance);
+                                    d.shiftY(delta * 2 + distance);
                                     break;
                                 }
                     }
-
                     if (d.Xmax() > t.listWidth) t.listWidth = d.Xmax();
                     t.details.remove(d);
                     used.add(d);
                 }
-
                 if (t.listWidth < a.listWidth || a.listWidth == 0) {
                     a.listWidth = t.listWidth;
                     for (var d : used) a.details.get(d.index).vertices = d.vertices;
                 }
             }
-
             // Завершение — безопасное обновление интерфейса
             SwingUtilities.invokeLater(() -> {
                 a.rascladMode = true;

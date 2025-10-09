@@ -68,7 +68,7 @@ public class Form1 extends JFrame
 	JScrollPane editScroll;
 	JMenuItem delete = new JMenuItem("Удалить");
 	JMenuItem exitRasclad2 = new JMenuItem("Редактировать деталь");
-	Boolean dotChanged = false, didLayout = false;
+	Boolean dotChanged = true, didLayout = false;
 	int H = 0, W = 0, treeX = 0, treeY = 0, undoRedo = -1, selected = 0;
 	
 	List<NumericField> Xfields = new ArrayList<>();
@@ -707,7 +707,6 @@ public class Form1 extends JFrame
 			updateFields(1);
 		}
 		
-		
 		if(product.details.size() == 1) {
 			detail.normalize();
 			updateFields(0);	
@@ -722,7 +721,7 @@ public class Form1 extends JFrame
 			float height = product.listHeight;
 			if(!product.rascladMode || mode > 0) {
 				if(mode > 0) try {
-					String input = JOptionPane.showInputDialog("Введите расстояние между лекалами в мм: ", 0);
+					String input = JOptionPane.showInputDialog("Введите расстояние между лекалами в мм: ", 10);
 			        product.distance = Float.parseFloat(input) / 1000;
 			        input = JOptionPane.showInputDialog("Введите ширину полотна в мм: ", (int)(product.listHeight * 1000));
 			        height = Float.parseFloat(input) / 1000;
@@ -861,11 +860,15 @@ public class Form1 extends JFrame
 		            Desktop.getDesktop().open(new File(path));
 		        }
 			}
-			else JOptionPane.showMessageDialog(null, "Линии отсутствуют.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+			else JOptionPane.showMessageDialog(null, "Линии отсутствуют.", "Ошибка", JOptionPane.WARNING_MESSAGE);
 		}	
 		catch(Exception e) {}		
     }
 	private void saveFileAs() {
+		if(product.totalVertices() < 3 && product.details.size() < 2) {
+			JOptionPane.showMessageDialog(null, "Нечего сохранять.", "Ошибка", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		var fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Сохранить как");
         var filter = new FileNameExtensionFilter("*.xml", "XML");
@@ -1086,6 +1089,7 @@ public class Form1 extends JFrame
             	}
         		else t.name = S; 
         	}
+        	else return;
         }
         selected = index + 1; detail = t;
         product.details.add(selected, detail);
