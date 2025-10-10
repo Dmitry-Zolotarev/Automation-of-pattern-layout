@@ -61,7 +61,7 @@ public class AI extends Thread {
                         if (H + d.Ymax() + distance <= a.listHeight) d.shiftY(H);
                         d.shiftX(t.listWidth + distance);
                         // Сдвиг деталей влево и вниз, пока не будет пересечения с другой деталью или краем полотна
-                        float minX = d.minX(), minY = d.minY(), delta = 0.03f;
+                        float minX = d.minX(), minY = d.minY(), delta = 0.02f;
                         for (boolean flag = true; flag && minX >= delta; d.shiftX(-delta), minX -= delta)
                             for (j = 0; j < i; j++)
                                 if (d.intersects(used.get(j))) {
@@ -90,21 +90,27 @@ public class AI extends Thread {
                     for (var d : used) a.details.get(d.index).vertices = d.vertices;
                 }
             }
-            // Завершение — безопасное обновление интерфейса
-            SwingUtilities.invokeLater(() -> {
+            finish();
+        } catch (Exception e) {
+        	finish();
+            e.printStackTrace();
+        }
+    }
+    private void finish() {
+    	try {
+    		SwingUtilities.invokeLater(() -> {
                 a.rascladMode = true;
                 if (Main == null) Main = new Form1(a, a.filePath);
-				Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
+    			Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
                 Main.product = a;
                 Main.setVisible(true);
                 if (Form != null) Form.dispose();
             });
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        catch (Exception e) {
+            finish();
+        }	
     }
-
     // Безопасное обновление прогресс-бара и текста
     private void updateWindow(int m) {
         if (Indicator == null || Label == null) return;

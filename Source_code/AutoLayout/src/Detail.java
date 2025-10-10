@@ -58,15 +58,10 @@ public class Detail {//Класс детали
 		shiftX(0.1f); shiftY(0.1f); 
 	};
 	public Boolean intersects(Detail other) {
-	    //1( Быстрая проверка по ограничивающим прямоугольникам
-	    float aMinX = minX(), aMaxX = Xmax(), aMinY = minY(), aMaxY = Ymax();
-	    float bMinX = other.minX(), bMaxX = other.Xmax(), bMinY = other.minY(), bMaxY = other.Ymax();
-	    if (aMaxX < bMinX || bMaxX < aMinX || aMaxY < bMinY || bMaxY < aMinY) return false;
 
 	    int n1 = vertices.size(), n2 = other.vertices.size();
    
-	    // 2) Проверка: если одна фигура содержит вершину другой (точный тест)
-	    // Сформируем Polygon только в случае, если другие тесты не дали результата
+	    // 1) Проверка: если одна фигура содержит вершину другой 
 	    int xPoints[] = new int[n1];
 	    int yPoints[] = new int[n1];
 	    int xPoints2[] = new int[n2];
@@ -87,7 +82,7 @@ public class Detail {//Класс детали
 	    for (int i = 0; i < n1; i++)
 	        if (figure2.contains(xPoints[i], yPoints[i])) return true;
 	    
-	    // 3) Проверка пересечения отрезков (медленная, но часто достаточная)
+	    // 2) Проверка пересечения отрезков (медленная, но часто достаточная)
 	    for (int i = 1; i < n1; i++)
 	        for (int j = 1; j < n2; j++)
 	            if (doIntersect(vertices.get(i - 1), vertices.get(i), other.vertices.get(j - 1), other.vertices.get(j)))

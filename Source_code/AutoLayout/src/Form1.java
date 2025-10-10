@@ -735,7 +735,6 @@ public class Form1 extends JFrame
 				}    	
 				if(mode == 2) setVisible(false);
 				if(mode > 0 && product.findRect(height, mode)) {
-
 					product.rascladMode = true;	
 					if(!detail.onRasclad) 
 						for(var d : product.details) 
@@ -893,7 +892,6 @@ public class Form1 extends JFrame
                 File fileToSave = fileChooser.getSelectedFile();
                 product.filePath = fileToSave.getAbsolutePath();
                 product.saveToFile(product.filePath);
-                product = new Product(product.filePath);  
             }
         }
         catch(Exception ex) {
