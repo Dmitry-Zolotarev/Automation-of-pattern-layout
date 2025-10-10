@@ -710,10 +710,6 @@ public class Form1 extends JFrame
 		if(product.rascladMode) {
 			setScale(1);//Установление масштаба
 		}
-		if(mode > 0) {
-			
-			updateFields(1);
-		}
 		
 		if(product.details.size() == 1) {
 			detail.normalize();
@@ -734,7 +730,9 @@ public class Form1 extends JFrame
 			        input = JOptionPane.showInputDialog("Введите ширину полотна в мм: ", (int)(product.listHeight * 1000));
 			        height = Float.parseFloat(input) / 1000;
 		        } 
-				catch (Exception e) { return; }    	
+				catch (Exception e) { 
+					return; 
+				}    	
 				if(mode == 2) setVisible(false);
 				if(mode > 0 && product.findRect(height, mode)) {
 
@@ -770,7 +768,10 @@ public class Form1 extends JFrame
 			area.setText("Параметры изделия");	
 			
 		}
-		else JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.ERROR_MESSAGE);	
+		else {
+			JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.ERROR_MESSAGE);	
+			exitRasclad();
+		}
 	}		
 	
 	private void getArea() {
