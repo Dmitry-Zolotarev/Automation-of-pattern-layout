@@ -58,21 +58,23 @@ public class Detail {//Класс детали
 		shiftX(0.1f); shiftY(0.1f); 
 	};
 	public Boolean intersects(Detail other) {
-
+		//1( Быстрая проверка по ограничивающим прямоугольникам
+	    if (Xmax() <  other.minX() || other.Xmax() < minX() || Ymax() < other.minY() || other.Ymax() < minY()) return false;
+	    
 	    int n1 = vertices.size(), n2 = other.vertices.size();
-   
+	    
 	    // 1) Проверка: если одна фигура содержит вершину другой 
 	    int xPoints[] = new int[n1];
 	    int yPoints[] = new int[n1];
 	    int xPoints2[] = new int[n2];
 	    int yPoints2[] = new int[n2];
 	    for (int i = 0; i < n1; i++) {
-	        xPoints[i] = vertices.get(i).intX(1000);
-	        yPoints[i] = vertices.get(i).intY(1000);
+	        xPoints[i] = vertices.get(i).intX(10000);
+	        yPoints[i] = vertices.get(i).intY(10000);
 	    }
 	    for (int i = 0; i < n2; i++) {
-	        xPoints2[i] = other.vertices.get(i).intX(1000);
-	        yPoints2[i] = other.vertices.get(i).intY(1000);
+	        xPoints2[i] = other.vertices.get(i).intX(10000);
+	        yPoints2[i] = other.vertices.get(i).intY(10000);
 	    }
 	    var figure = new java.awt.Polygon(xPoints, yPoints, n1);
 	    var figure2 = new java.awt.Polygon(xPoints2, yPoints2, n2);

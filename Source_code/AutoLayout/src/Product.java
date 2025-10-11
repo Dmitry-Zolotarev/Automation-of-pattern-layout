@@ -167,7 +167,7 @@ public class Product {//Класс для описания абстрактно�
 				main.setVisible(true);
 				return;
 			}
-			accuracy = Integer.parseInt(input) * n;	
+			accuracy = Integer.parseInt(input) * n * n;	
 			findRect(height, 1);
 			Detail d = new Detail();
 			//Инициализация окна, показывающего процент завершения раскладки.

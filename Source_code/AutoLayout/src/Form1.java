@@ -707,15 +707,8 @@ public class Form1 extends JFrame
 	}
 
 	void Rasclad(int mode) {//Функция для раскладки
-		if(product.rascladMode) {
-			setScale(1);//Установление масштаба
-		}
-		
-		if(product.details.size() == 1) {
-			detail.normalize();
-			updateFields(0);	
-			return;
-		}
+		if(product.rascladMode) setScale(1);
+
 		int count = 0;
 		for(var d : product.details) {
 			if(d.vertices.size() < 3) d.onRasclad = false;
@@ -768,7 +761,7 @@ public class Form1 extends JFrame
 			
 		}
 		else {
-			JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.ERROR_MESSAGE);	
+			JOptionPane.showMessageDialog(null, "Нет деталей для раскладки!", "Ошибка", JOptionPane.WARNING_MESSAGE);	
 			exitRasclad();
 		}
 	}		
