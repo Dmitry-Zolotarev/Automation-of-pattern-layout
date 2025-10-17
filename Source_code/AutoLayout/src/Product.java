@@ -132,7 +132,7 @@ public class Product {//Класс для описания абстрактно�
         			}
         			d.shiftX(listWidth + distance);
         		}//Сдвиг деталей влево и вверх, пока не будет пересения с другой деталью, либо с краем полотна.
-        		float minX = d.minX(), minY = d.minY(), delta = 0.02f;
+        		float minX = d.minX(), minY = d.minY(), delta = 0.01f;
         		for(Boolean flag = true; flag && minX >= delta; d.shiftX(-delta), minX -= delta)
         			for(int j = i - 1; j >= 0; j--) {
         				if(d.intersects(t.details.get(j)) ) {
@@ -141,7 +141,7 @@ public class Product {//Класс для описания абстрактно�
             				break;
             			}
         			}		
-        		for(Boolean flag = true; flag && minY >= 0.02f; d.shiftY(-delta), minY -= 0.02f)
+        		for(Boolean flag = true; flag && minY >= delta; d.shiftY(-delta), minY -= delta)
         			for(int j = i - 1; j >= 0; j--) {
         				if(d.intersects(t.details.get(j)) ) {
             				flag = false; 

@@ -548,7 +548,6 @@ public class Form1 extends JFrame
 	            product.scaling = Float.parseFloat(
 	                JOptionPane.showInputDialog("Введите масштаб в %: ")
 	            ) / 100f;
-	            if (product.scaling > 1f) product.scaling = 1f;
 	            if (product.scaling <= 0f) product.scaling = 1f;
 	            scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
 	            updateFields(0);

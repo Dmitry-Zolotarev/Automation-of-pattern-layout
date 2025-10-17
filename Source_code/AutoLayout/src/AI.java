@@ -61,7 +61,7 @@ public class AI extends Thread {
                         if (H + d.Ymax() + distance <= a.listHeight) d.shiftY(H);
                         d.shiftX(t.listWidth + distance);
                         // Сдвиг деталей влево и вниз, пока не будет пересечения с другой деталью или краем полотна
-                        float minX = d.minX(), minY = d.minY(), delta = 0.02f;
+                        float minX = d.minX(), minY = d.minY(), delta = 0.025f;
                         for (boolean flag = true; flag && minX >= delta; d.shiftX(-delta), minX -= delta)
                             for (j = 0; j < i; j++)
                                 if (d.intersects(used.get(j))) {
