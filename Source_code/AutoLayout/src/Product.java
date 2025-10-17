@@ -74,7 +74,7 @@ public class Product {//Класс для описания абстрактно�
 	                Element vertexElement = (Element) vertexNodes.item(j);
 	                float x = Float.parseFloat(vertexElement.getAttribute("X"));
 	                float y = Float.parseFloat(vertexElement.getAttribute("Y"));
-	                detail.vertices.add(new dot(x, y));
+	                detail.vertices.add(new Dot(x, y));
 	            }
 	            details.add(detail);
 	        }
@@ -132,21 +132,20 @@ public class Product {//Класс для описания абстрактно�
         			}
         			d.shiftX(listWidth + distance);
         		}//Сдвиг деталей влево и вверх, пока не будет пересения с другой деталью, либо с краем полотна.
-        		float minX = d.minX(), minY = d.minY();
-        		for(Boolean flag = true; flag && minX >= 0.02f; d.shiftX(-0.02f), minX -= 0.02f)
+        		float minX = d.minX(), minY = d.minY(), delta = 0.02f;
+        		for(Boolean flag = true; flag && minX >= delta; d.shiftX(-delta), minX -= delta)
         			for(int j = i - 1; j >= 0; j--) {
         				if(d.intersects(t.details.get(j)) ) {
             				flag = false; 
-            				d.shiftX(0.04f + distance);
+            				d.shiftX(delta * 2f + distance);
             				break;
             			}
-        			}
-            			
-        		for(Boolean flag = true; flag && minY >= 0.02f; d.shiftY(-0.02f), minY -= 0.02f)
+        			}		
+        		for(Boolean flag = true; flag && minY >= 0.02f; d.shiftY(-delta), minY -= 0.02f)
         			for(int j = i - 1; j >= 0; j--) {
         				if(d.intersects(t.details.get(j)) ) {
             				flag = false; 
-            				d.shiftY(0.04f + distance);
+            				d.shiftY(delta * 2f + distance);
             				break;
             			}
         			}
@@ -266,7 +265,7 @@ public class Product {//Класс для описания абстрактно�
 	            		Element detailElement = doc.createElement("Деталь");
 		                detailElement.setAttribute("Имя", detail.name);
 		                detailElement.setAttribute("На_раскладку", Boolean.toString(detail.onRasclad));
-		                for (dot vertex : detail.vertices) {
+		                for (Dot vertex : detail.vertices) {
 		                    Element vertexElement = doc.createElement("Точка");
 		                    vertexElement.setAttribute("X", String.valueOf(vertex.X));
 		                    vertexElement.setAttribute("Y", String.valueOf(vertex.Y));
@@ -304,7 +303,21 @@ public class Product {//Класс для описания абстрактно�
     }
     public void getProperties() {
     	String[] array = {"Ошибка: есть лекала, выходящие за полотно!"};
-    	if(Ymax() <= listHeight) {
+        boolean collision = false;
+        for (int i = 0; i < details.size() - 1; i++) 
+        {
+        	for (int j = i + 1; j < details.size(); j++) 
+        		if (details.get(i).intersects(details.get(j))) { 
+        			collision = true; 
+        			break; 
+        		}      		
+        	if(collision) {
+        		String[] array2 = {"Ошибка: есть пересечения лекал!"};
+        		array = array2;
+        		break;
+        	}
+        }
+    	if(Ymax() <= listHeight && !collision) {
     		String[] array2 = {
     				"Название: " + name,
     				"Описание: " + description,

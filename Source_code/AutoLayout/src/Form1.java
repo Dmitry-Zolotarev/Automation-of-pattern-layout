@@ -131,7 +131,6 @@ public class Form1 extends JFrame
         timer.start();
                 
         canvas.addMouseListener(new MouseAdapter() {
-        	
         	@Override
             public void mousePressed(MouseEvent e) {
                 // Запоминаем момент нажатия
@@ -147,12 +146,12 @@ public class Form1 extends JFrame
                 clickDuration = System.currentTimeMillis() - pressTime;
             	if(!product.rascladMode) {//Если режим ракладки выключен, то происходит рисование новой детали по точкам.
                 	if (SwingUtilities.isLeftMouseButton(e) && clickDuration < 200) {
-                		if(detail.vertices.size() > 0) detail.current++;
-                		detail.vertices.add(detail.current, new dot(e.getX() * 1f / H / product.scaling, e.getY() * 1f / H / product.scaling));
+                		var dot = new Dot(e.getX() * 1f / H / product.scaling, e.getY() * 1f / H / product.scaling);
+                		detail.addVertex(dot);
                 		product.changed = true;
                         updateFields(0);                 
                 	}//Если режим ракладки включен, то происходит выбор детали на раскладке мышью.
-                	else if(SwingUtilities.isRightMouseButton(e)) rightClick.show(canvas, e.getX(), e.getY());
+                	if(SwingUtilities.isRightMouseButton(e)) rightClick.show(canvas, e.getX(), e.getY());
             	}
             	else {
             		for(int i = 0; i < product.details.size(); i++) {
@@ -170,15 +169,14 @@ public class Form1 extends JFrame
             				break;
             			}
             		}
-            	}
-            	updateFields(1);
-            } 
+            	}	
+            }  
         });   
         canvas.addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 try {
-                    if (detail == null) return;
+                    if (detail == null || product.rascladMode) return;
                     if (detail.vertices.size() <= 1) return; // нечего вращать
                     // Один "щелчок" колёсика — 5 градусов (можно изменить)
                     if (detail.minX() < 0) detail.shiftX(-detail.minX());
@@ -203,37 +201,24 @@ public class Form1 extends JFrame
             Point last = null;
             @Override
             public void mouseDragged(MouseEvent e) {
-            	if(clickDuration < 300 && !product.rascladMode) return;
-                if (detail == null) return; // если нет выбранной детали — ничего не делаем
+            	if(clickDuration < 300 && !product.rascladMode || detail == null) return;
+                // если нет выбранной детали — ничего не делаем
                 if (!SwingUtilities.isLeftMouseButton(e)) { 
                     last = null; 
                     return; 
                 }
 
-                int H = canvas.getHeight();
-                int W = canvas.getWidth();
-                if (H == 0 || product == null) return;
-
                 if (last == null) { 
                     last = e.getPoint(); 
                     return; 
                 }
-
-                float dxPixels = e.getX() - last.x;
-                float dyPixels = e.getY() - last.y;
+                float dxPixels = e.getX() - last.x,  dyPixels = e.getY() - last.y,
+                	  dx = dxPixels / (H * product.scaling), dy = dyPixels / (H * product.scaling),
+                	  remainingX = dx, remainingY = dy, step = 0.005f;
                 last = e.getPoint();
-
-                float dx = dxPixels / (H * product.scaling);
-                float dy = dyPixels / (H * product.scaling);
-
-                float remainingX = dx;
-                float remainingY = dy;
-                float step = 0.005f;
-
                 // === Перемещение по X ===
                 while (Math.abs(remainingX) > 1e-6f) {
                     float s = Math.signum(remainingX) * Math.min(step, Math.abs(remainingX));
-
                     // ограничение по левой границе
                     if (detail.minX() + s < 0) {
                         s = -detail.minX();
@@ -241,16 +226,6 @@ public class Form1 extends JFrame
                     }
 
                     detail.shiftX(s);
-
-                    boolean coll = false;
-                    if (product.rascladMode) 
-                        for (var d : product.details)
-                            if (d != detail && detail.intersects(d)) { coll = true; break; }
-
-                    if (coll) { 
-                        detail.shiftX(-s); 
-                        break; 
-                    }
                     remainingX -= s;
                 }
                 // === Перемещение по Y ===
@@ -264,16 +239,6 @@ public class Form1 extends JFrame
                     }
 
                     detail.shiftY(s);
-
-                    boolean coll = false;
-                    if (product.rascladMode) 
-                        for (var d : product.details)
-                            if (d != detail && detail.intersects(d)) { coll = true; break; }
-
-                    if (coll) { 
-                        detail.shiftY(-s); 
-                        break; 
-                    }
 
                     remainingY -= s;
                 }
@@ -324,7 +289,6 @@ public class Form1 extends JFrame
             }
         });       
         canvas.setDoubleBuffered(true);
-        canvas.setToolTipText("Клавиши W, A, S, D - сдвиг, Q и E - вращение");
         
         fileMenu.add(createItem);
 		fileMenu.add(loadItem);
@@ -547,102 +511,6 @@ public class Form1 extends JFrame
         };
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
         actionMap.put("Del", delete);
-        
-        float delta = 0.01f;
-        
-        Action left = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) { 
-            		if(detail.minX() >= delta) detail.shiftX(-delta); 
-                	updateFields(0);
-                	if(product.rascladMode) 
-                		for(var d : product.details)
-                			if(d != detail && detail.intersects(d)) {
-                				detail.shiftX(delta);
-                				break;
-                			}
-            }    
-        };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), "leftA");
-        actionMap.put("leftA", left);
-        
-        Action right = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-            		detail.shiftX(delta); 
-            		if(product.rascladMode) 
-                    	for(var d : product.details)
-                    		if(d != detail && detail.intersects(d)) {
-                    			detail.shiftX(-delta);
-                    			break;
-                    		}
-            		updateFields(0);
-            	}   
-        };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "rightD");
-        actionMap.put("rightD", right); 
-        
-        Action up = new AbstractAction() {
-        	public void actionPerformed(ActionEvent e) { 
-        		if(detail.minY() >= delta)detail.shiftY(-delta); 
-                updateFields(0);
-        		if(product.rascladMode) 
-                	for(var d : product.details)
-                		if(d != detail && detail.intersects(d)) {
-                			detail.shiftY(delta);
-                			break;
-                		}
-        	}	   
-        };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), "upW");
-        actionMap.put("upW", up);
-        
-        Action down = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) { 
-            	detail.shiftY(0.01f); 
-            	if(product.rascladMode) 
-                		for(var d : product.details)
-                			if(d != detail && detail.intersects(d)) {
-                				detail.shiftY(-delta);
-                				break;
-                			}	 
-            	updateFields(0);
-           	}
-        };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "downS");
-        actionMap.put("downS", down);
-        
-        Action Erotate = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-            	detail.rotate(1);
-            	if(detail.minX() < 0) detail.shiftX(-detail.minX());
-		        if(detail.minY() < 0) detail.shiftY(-detail.minY());
-		        if(product.rascladMode) 
-            		for(var d : product.details)
-            			if(d != detail && detail.intersects(d)) {
-            				detail.rotate(-2);
-            				break;
-            			}
-		        updateFields(0);
-            }
-        };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0), "E");
-        actionMap.put("E", Erotate);
-        
-        Action Qrotate = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-            	detail.rotate(-1);
-            	if(detail.minX() < 0) detail.shiftX(-detail.minX());
-		        if(detail.minY() < 0) detail.shiftY(-detail.minY());
-		        if(product.rascladMode) 
-            		for(var d : product.details)
-            			if(d != detail && detail.intersects(d)) {
-            				detail.rotate(2);
-            				break;
-            			}	
-		        updateFields(0);
-            }
-        };
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, 0), "Q");
-        actionMap.put("Q", Qrotate);
 	}
 	
 	private void reDraw(Detail d, Graphics g, int param) //Функция для отрисовки детали
@@ -1015,8 +883,9 @@ public class Form1 extends JFrame
 					if(detail.minY() < 0) detail.shiftY(-detail.minY());
 					updateFields(0);
 				}
-				else JOptionPane.showMessageDialog(null, "Вращать нечего.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+				else JOptionPane.showMessageDialog(null, "Вращать нечего.", "Ошибка", JOptionPane.WARNING_MESSAGE);
 			}
+			else JOptionPane.showMessageDialog(null, "Вращение недоступно в режиме раскладки.", "Ошибка", JOptionPane.WARNING_MESSAGE);
 		}
 		catch(Exception e) {}	
 	}
@@ -1028,7 +897,7 @@ public class Form1 extends JFrame
 					detail.scale(Float.parseFloat(S));
 					updateFields(0);
 				}
-				else JOptionPane.showMessageDialog(null, "Отрезки не найдены!", "Ошибка", JOptionPane.ERROR_MESSAGE);   
+				else JOptionPane.showMessageDialog(null, "Отрезки не найдены!", "Ошибка", JOptionPane.WARNING_MESSAGE);   
 			}
 		} catch(Exception e) {}
 	}
@@ -1186,5 +1055,4 @@ public class Form1 extends JFrame
         }
         catch(Exception ex) { return; }	
 	}
-
 }

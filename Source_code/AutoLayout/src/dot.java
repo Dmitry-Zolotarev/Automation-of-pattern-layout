@@ -1,7 +1,7 @@
 //Класс для точки в нормализованных координатах
-public class dot {
+public class Dot {
 	float X, Y;
-	public dot(float x, float y) 
+	public Dot(float x, float y) 
 	{
 		this.X = x; this.Y = y; 
 	}

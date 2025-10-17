@@ -48,7 +48,7 @@ public class AI extends Thread {
                         l = (int) (Math.random() * 2);
                         d.rotate(180 * l);
                     }
-
+                    d.normalize();	
                     l = (int) (Math.random() * 2);
                     if (l == 0) d.flipHorizontal();
                     d.normalize();	
@@ -72,7 +72,7 @@ public class AI extends Thread {
                         if (a.listWidth > 0 && d.Xmax() > a.listWidth) {
                             t.listWidth = a.listWidth;
                             break;
-                        }
+                        }     
                         for (boolean flag = true; flag && minY >= delta; d.shiftY(-delta), minY -= delta)
                             for (j = 0; j < i; j++)
                                 if (d.intersects(used.get(j))) {
@@ -85,7 +85,7 @@ public class AI extends Thread {
                     t.details.remove(d);
                     used.add(d);
                 }
-                if (t.listWidth < a.listWidth || a.listWidth == 0) {
+                if ((t.listWidth < a.listWidth || a.listWidth == 0) && !collision(t)) {
                     a.listWidth = t.listWidth;
                     for (var d : used) a.details.get(d.index).vertices = d.vertices;
                 }
@@ -95,6 +95,13 @@ public class AI extends Thread {
         	finish();
             e.printStackTrace();
         }
+    }
+    private Boolean collision(Product t) 
+    {
+        for (int i = 0; i < t.details.size() - 1; i++) 
+        	for (int j = i + 1; j < t.details.size(); j++) 
+        		if (t.details.get(i).intersects(t.details.get(j))) return true;
+        return false;
     }
     private void finish() {
     	try {
