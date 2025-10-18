@@ -106,10 +106,12 @@ public class AI extends Thread {
     private void finish() {
     	try {
     		SwingUtilities.invokeLater(() -> {
-                a.rascladMode = true;
+                a.rascladMode = true;              
                 if (Main == null) Main = new Form1(a, a.filePath);
     			Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
+    			float listWidth = Main.product.listWidth;
                 Main.product = a;
+                if(a.listWidth < listWidth) Main.saveFile(1);
                 Main.setVisible(true);
                 if (Form != null) Form.dispose();
             });

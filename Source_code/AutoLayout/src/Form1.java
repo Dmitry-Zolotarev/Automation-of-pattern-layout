@@ -129,7 +129,7 @@ public class Form1 extends JFrame
     	
 		timer = new Timer(10, e -> onTimer());//Обновление изображения деталей 100 раз в секунду
         timer.start();
-                
+        canvas.setComponentPopupMenu(rightClick);      
         canvas.addMouseListener(new MouseAdapter() {
         	@Override
             public void mousePressed(MouseEvent e) {
@@ -137,7 +137,7 @@ public class Form1 extends JFrame
                 if (SwingUtilities.isLeftMouseButton(e)) pressTime = System.currentTimeMillis();
 
                 // Правая кнопка — контекстное меню
-                else if (!product.rascladMode && SwingUtilities.isRightMouseButton(e)) rightClick.show(canvas, e.getX(), e.getY());
+                //else if (!product.rascladMode && SwingUtilities.isRightMouseButton(e)) rightClick.show(canvas, e.getX(), e.getY());
 
             }
             @Override//Обработка клика по холсту для разметки лекал деталей
@@ -151,7 +151,7 @@ public class Form1 extends JFrame
                 		product.changed = true;
                         updateFields(0);                 
                 	}//Если режим ракладки включен, то происходит выбор детали на раскладке мышью.
-                	if(SwingUtilities.isRightMouseButton(e)) rightClick.show(canvas, e.getX(), e.getY());
+                	
             	}
             	else {
             		for(int i = 0; i < product.details.size(); i++) {
@@ -165,12 +165,12 @@ public class Form1 extends JFrame
             			if(figure.contains(e.getX(), e.getY())) {
             				detail = d;
             				selected = i;
-            				updateFields(0);  
             				break;
             			}
             		}
             	}	
             }  
+            
         });   
         canvas.addMouseWheelListener(new MouseWheelListener() {
             @Override
@@ -252,7 +252,7 @@ public class Form1 extends JFrame
             }
         });
         saveAS.addActionListener(e -> saveFileAs());
-        saveItem.addActionListener(e -> saveFile());
+        saveItem.addActionListener(e -> saveFile(0));
         loadItem.addActionListener(e -> openFile());
         rotate.addActionListener(e -> rotate());
         vertical.addActionListener(e -> flipVertical());
@@ -266,7 +266,7 @@ public class Form1 extends JFrame
         scale3.addActionListener(e -> scaleDetail());
         shiftX2.addActionListener(e -> shiftX());
         shiftY2.addActionListener(e -> shiftY());
-        save.addActionListener(e -> saveFile());
+        save.addActionListener(e -> saveFile(0));
         fastRasclad.addActionListener(e -> Rasclad(1));
         RascladAI.addActionListener(e -> Rasclad(2));
         changeRasclad.addActionListener(e -> Rasclad(0));
@@ -398,6 +398,7 @@ public class Form1 extends JFrame
 			updateFields(0);
 		}
 		if(!product.rascladMode) {
+			scale.setVisible(true);
 			for(int i = 0; i < detail.vertices.size(); i++) {
 				try {
 					float X = Float.parseFloat(Xfields.get(i).getText()) / 1000,
@@ -431,7 +432,7 @@ public class Form1 extends JFrame
         actionMap.put("ctrl + Shift + Z", ctrlShiftZ);
         
         Action save = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) { saveFile(); }
+            public void actionPerformed(ActionEvent e) { saveFile(0); }
         };
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "Ctrl + S");
         actionMap.put("Ctrl + S", save);
@@ -540,22 +541,22 @@ public class Form1 extends JFrame
 	    if(dotChanged) {
 	        canvas.paint(canvas.getGraphics());
 	        dotChanged = false;
-	    }	
+	    }
 	}
 	private void setScale(int mode) {
 	    try {
 	        if (mode == 0) { // Ручной ввод масштаба
-	            product.scaling = Float.parseFloat(
-	                JOptionPane.showInputDialog("Введите масштаб в %: ")
-	            ) / 100f;
+	            product.scaling = Float.parseFloat(JOptionPane.showInputDialog("Введите масштаб в %: ")) / 100f;
+	                
+	            
 	            if (product.scaling <= 0f) product.scaling = 1f;
 	            scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
 	            updateFields(0);
 	        }
 	        else if (mode == 1) { // Автоматическое масштабирование под окно
 	            // Расчёт масштабов по ширине и высоте
-	            float scaleByWidth  = (canvas.getWidth() * 0.9f) / (product.listWidth  * H);
-	            float scaleByHeight = (canvas.getHeight() * 0.9f) / (product.listHeight * H);
+	            float scaleByWidth  = (canvas.getWidth() * 0.95f) / (product.listWidth  * H);
+	            float scaleByHeight = (canvas.getHeight() * 0.95f) / (product.listHeight * H);
 	            // Берём минимальный, чтобы всё влезло
 	            product.scaling = Math.min(scaleByWidth, scaleByHeight);
 
@@ -574,8 +575,8 @@ public class Form1 extends JFrame
 	}
 
 	void Rasclad(int mode) {//Функция для раскладки
-		if(product.rascladMode) setScale(1);
-
+		scale.setVisible(false);
+		setScale(1);
 		int count = 0;
 		for(var d : product.details) {
 			if(d.vertices.size() < 3) d.onRasclad = false;
@@ -664,9 +665,9 @@ public class Form1 extends JFrame
         } 
         return false;
     }
-	private void saveFile() {
-		if(product.filePath != null && product.filePath.length() > 2) product.saveToFile(product.filePath);
-		else saveFileAs();
+	public void saveFile(int param) {
+		if(product.filePath.length() > 2) product.saveToFile(product.filePath);
+		else if(param == 0)saveFileAs();
 	}
 	private void openFile() {
 		try {

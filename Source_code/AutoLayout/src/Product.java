@@ -162,7 +162,6 @@ public class Product {//Класс для описания абстрактно�
 			int n = details.size(), accuracy = 0;
 			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 1000);
 			if(input == null) {
-				findRect(listHeight, 1);
 				main.setVisible(true);
 				return;
 			}
