@@ -676,7 +676,7 @@ public class Form1 extends JFrame
     }
 	public void saveFile() {
 		if(product.filePath.length() > 2) product.saveToFile(product.filePath);
-		saveFileAs();
+		else saveFileAs();
 	}
 	private void openFile() {
 		try {
