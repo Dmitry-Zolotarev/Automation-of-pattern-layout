@@ -391,6 +391,16 @@ public class Form1 extends JFrame
 		
 	}
 	private void onTimer() {
+		scale2.setVisible(!product.rascladMode);
+		rotate.setVisible(!product.rascladMode);
+    	shiftX.setVisible(!product.rascladMode);
+    	shiftY.setVisible(!product.rascladMode);
+    	
+    	scale3.setVisible(!product.rascladMode);
+		rotate2.setVisible(!product.rascladMode);
+    	shiftX2.setVisible(!product.rascladMode);
+    	shiftY2.setVisible(!product.rascladMode);
+    	//Сокрытие функций, недоступных в режиме раскладки
 		if(H != canvas.getHeight() || W != canvas.getWidth()) {
 			
 			H = canvas.getHeight();
@@ -547,8 +557,7 @@ public class Form1 extends JFrame
 	    try {
 	        if (mode == 0) { // Ручной ввод масштаба
 	            product.scaling = Float.parseFloat(JOptionPane.showInputDialog("Введите масштаб в %: ")) / 100f;
-	                
-	            
+
 	            if (product.scaling <= 0f) product.scaling = 1f;
 	            scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
 	            updateFields(0);
@@ -861,6 +870,7 @@ public class Form1 extends JFrame
 			scale.setText("Масштаб: " + (int)(product.scaling * 100) + "%");
 			updateFields(1);
 			tree.setSelectionRow(selected + 1);
+			dotChanged = true;
 		}		
 	}
 	private void redo() {		 
@@ -871,6 +881,7 @@ public class Form1 extends JFrame
 			detail = product.details.get(selected);
 			updateFields(1);
 			tree.setSelectionRow(selected + 1);
+			dotChanged = true;
 		} 	
 	}
 	private void rotate() {
@@ -885,7 +896,6 @@ public class Form1 extends JFrame
 				}
 				else JOptionPane.showMessageDialog(null, "Вращать нечего.", "Ошибка", JOptionPane.WARNING_MESSAGE);
 			}
-			else JOptionPane.showMessageDialog(null, "Вращение недоступно в режиме раскладки.", "Ошибка", JOptionPane.WARNING_MESSAGE);
 		}
 		catch(Exception e) {}	
 	}
