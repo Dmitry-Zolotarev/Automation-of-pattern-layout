@@ -111,7 +111,6 @@ public class AI extends Thread {
     			Main.scale.setText("Масштаб: "+ Math.round(a.scaling * 100) + "%");
     			float listWidth = Main.product.listWidth;
                 Main.product = a;
-                if(a.listWidth < listWidth) Main.saveFile(1);
                 Main.setVisible(true);
                 if (Form != null) Form.dispose();
             });

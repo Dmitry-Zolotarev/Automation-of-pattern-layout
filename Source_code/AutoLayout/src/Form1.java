@@ -252,7 +252,7 @@ public class Form1 extends JFrame
             }
         });
         saveAS.addActionListener(e -> saveFileAs());
-        saveItem.addActionListener(e -> saveFile(0));
+        saveItem.addActionListener(e -> saveFile());
         loadItem.addActionListener(e -> openFile());
         rotate.addActionListener(e -> rotate());
         vertical.addActionListener(e -> flipVertical());
@@ -266,7 +266,7 @@ public class Form1 extends JFrame
         scale3.addActionListener(e -> scaleDetail());
         shiftX2.addActionListener(e -> shiftX());
         shiftY2.addActionListener(e -> shiftY());
-        save.addActionListener(e -> saveFile(0));
+        save.addActionListener(e -> saveFile());
         fastRasclad.addActionListener(e -> Rasclad(1));
         RascladAI.addActionListener(e -> Rasclad(2));
         changeRasclad.addActionListener(e -> Rasclad(0));
@@ -442,7 +442,7 @@ public class Form1 extends JFrame
         actionMap.put("ctrl + Shift + Z", ctrlShiftZ);
         
         Action save = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) { saveFile(0); }
+            public void actionPerformed(ActionEvent e) { saveFile(); }
         };
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "Ctrl + S");
         actionMap.put("Ctrl + S", save);
@@ -674,9 +674,9 @@ public class Form1 extends JFrame
         } 
         return false;
     }
-	public void saveFile(int param) {
+	public void saveFile() {
 		if(product.filePath.length() > 2) product.saveToFile(product.filePath);
-		else if(param == 0)saveFileAs();
+		saveFileAs();
 	}
 	private void openFile() {
 		try {
