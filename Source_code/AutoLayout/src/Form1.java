@@ -584,6 +584,10 @@ public class Form1 extends JFrame
 	}
 
 	void Rasclad(int mode) {//Функция для раскладки
+		if(mode == 2 && product.details.size() < 3) {
+			JOptionPane.showMessageDialog(null, "Для ИИ-раскладки нужно не менее 3 деталей!", "Сообщение", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		scale.setVisible(false);
 		if(mode == 0)setScale(1);
 		int count = 0;
