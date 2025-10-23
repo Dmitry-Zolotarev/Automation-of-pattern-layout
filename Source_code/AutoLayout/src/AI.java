@@ -85,7 +85,7 @@ public class AI extends Thread {
                     t.details.remove(d);
                     used.add(d);
                 }
-                if ((t.listWidth < a.listWidth || a.listWidth == 0) && !collision(t)) {
+                if ((t.listWidth < a.listWidth || a.listWidth == 0) && !t.collision()) {
                     a.listWidth = t.listWidth;
                     for (var d : used) a.details.get(d.index).vertices = d.vertices;
                 }
@@ -96,13 +96,7 @@ public class AI extends Thread {
             e.printStackTrace();
         }
     }
-    private Boolean collision(Product t) 
-    {
-        for (int i = 0; i < t.details.size() - 1; i++) 
-        	for (int j = i + 1; j < t.details.size(); j++) 
-        		if (t.details.get(i).intersects(t.details.get(j))) return true;
-        return false;
-    }
+    
     private void finish() {
     	try {
     		SwingUtilities.invokeLater(() -> {
@@ -129,7 +123,7 @@ public class AI extends Thread {
                 Indicator.setValue(progress);
             }
             if (Label != null) {
-                Label.setText("ИИ-раскладка завершена на " + (progress / 10f) + "%");
+                Label.setText("Раскладка завершена на " + (progress / 10f) + "%");
             }
         });
     }

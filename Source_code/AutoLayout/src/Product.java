@@ -173,7 +173,7 @@ public class Product {//Класс для описания абстрактно�
 			var progress = new JProgressBar();
 			progress.setMinimum(0);
 			progress.setMaximum(1000);
-			var label = new JLabel("ИИ-раскладка завершена на 0.0%");
+			var label = new JLabel("Раскладка завершена на 0.0%");
 			label.setFont(new Font("Arial", Font.PLAIN, 24));
 			label.setHorizontalAlignment(SwingConstants.CENTER); 
 			label.setAlignmentY(100);
@@ -300,24 +300,21 @@ public class Product {//Класс для описания абстрактно�
     		root.add(file);  		
     	}
     }
+    public Boolean collision() 
+    {
+        for (int i = 0; i < details.size() - 1; i++) 
+        	for (int j = i + 1; j < details.size(); j++) 
+        		if (details.get(i).intersects(details.get(j))) return true;
+        return false;
+    }
     public void getProperties() {
     	String[] array = {"Ошибка: есть лекала, выходящие за полотно!"};
-        boolean collision = false;
-        for (int i = 0; i < details.size() - 1; i++) 
-        {
-        	for (int j = i + 1; j < details.size(); j++) 
-        		if (details.get(i).intersects(details.get(j))) { 
-        			collision = true; 
-        			break; 
-        		}      		
-        	if(collision) {
-        		String[] array2 = {"Ошибка: есть пересечения лекал!"};
-        		array = array2;
-        		break;
-        	}
-        }
-    	if(Ymax() <= listHeight && !collision) {
-    		String[] array2 = {
+    	String[] array2 = {"Ошибка: есть пересечения лекал!"};
+    	
+    	if(collision()) array = array2;
+    		
+    	if(Ymax() <= listHeight && array != array2) {
+    		String[] array3 = {
     				"Название: " + name,
     				"Описание: " + description,
     				"Суммарная площадь деталей: " + (int) Area() + " cм2.",
@@ -325,7 +322,7 @@ public class Product {//Класс для описания абстрактно�
     				"Длина: " + Math.round(listWidth * 1000) + " мм;", 
     				"Ширина: " + Math.round(listHeight * 1000) + " мм;",	
     				"Межлекальных отходов: " + (int)((rectArea() - Area()) / rectArea() * 1000) / 10f + "%"};
-    		array = array2;
+    		array = array3;
     	}						
         StringBuilder sb = new StringBuilder("<html>");
         for (String str : array) sb.append(str).append("<br>");

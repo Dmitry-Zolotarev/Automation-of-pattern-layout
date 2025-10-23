@@ -585,7 +585,7 @@ public class Form1 extends JFrame
 
 	void Rasclad(int mode) {//Функция для раскладки
 		scale.setVisible(false);
-		setScale(1);
+		if(mode == 0)setScale(1);
 		int count = 0;
 		for(var d : product.details) {
 			if(d.vertices.size() < 3) d.onRasclad = false;
@@ -595,6 +595,7 @@ public class Form1 extends JFrame
 			float height = product.listHeight;
 			if(!product.rascladMode || mode > 0) {
 				if(mode > 0) try {
+					updateFields(1); 
 					String input = JOptionPane.showInputDialog("Введите расстояние между лекалами в мм: ", 10);
 			        product.distance = Float.parseFloat(input) / 1000;
 			        input = JOptionPane.showInputDialog("Введите ширину полотна в мм: ", (int)(product.listHeight * 1000));
