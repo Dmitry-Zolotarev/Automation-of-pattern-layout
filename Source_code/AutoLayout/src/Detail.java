@@ -75,9 +75,6 @@ public class Detail {//Класс детали
 	};
 	public Boolean intersects(Detail other) {
 	    int n1 = vertices.size(), n2 = other.vertices.size();
-		//1( Быстрая проверка по ограничивающим прямоугольникам
-	    if (Xmax() <  other.minX() || other.Xmax() < minX() || Ymax() < other.minY() || other.Ymax() < minY()) return false;
-	    // 2) Проверка: если одна фигура содержит вершину другой 
 	    int xPoints[] = new int[n1];
 	    int yPoints[] = new int[n1];
 	    int xPoints2[] = new int[n2];
