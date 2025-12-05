@@ -11,5 +11,15 @@ public class Dot {
 	public int intY(float height) {
 		return Math.round(Y * height);
 	}//Масштабирование координаты Y под заланный размер.
+	public float magnitude() 
+	{
+		return X * X + Y * Y;
+	}
+	public void normalize() 
+	{
+		var magnitude = magnitude();
+		X /= magnitude;
+		Y /= magnitude;
+	}
 }
 //Координаты хранятся в нормализованном виде для возможности масштабирования и отвязки от размеров окна.

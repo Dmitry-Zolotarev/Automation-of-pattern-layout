@@ -16,6 +16,7 @@ public class Form1 extends JFrame
 {//Класс основного окна программы
 	JMenuBar menuBar = new JMenuBar();
 	JMenuItem createItem = new JMenuItem("Создать новый");
+	JMenuItem generateItem = new JMenuItem("Сгенерировать тестовые лекала");
 	JMenuItem loadItem = new JMenuItem("Открыть");
 	JMenuItem saveItem = new JMenuItem("Сохранить");
 	JMenuItem saveAS = new JMenuItem("Сохранить как");
@@ -253,6 +254,12 @@ public class Form1 extends JFrame
         });
         saveAS.addActionListener(e -> saveFileAs());
         saveItem.addActionListener(e -> saveFile());
+        generateItem.addActionListener(e -> {
+        	product.generateTestDetails();
+        	detail = product.details.get(0);
+        	updateFields(0);
+        	
+        });
         loadItem.addActionListener(e -> openFile());
         rotate.addActionListener(e -> rotate());
         vertical.addActionListener(e -> flipVertical());
@@ -291,6 +298,7 @@ public class Form1 extends JFrame
         canvas.setDoubleBuffered(true);
         
         fileMenu.add(createItem);
+        fileMenu.add(generateItem);
 		fileMenu.add(loadItem);
 		fileMenu.add(saveItem);
 		fileMenu.add(saveAS);
@@ -335,9 +343,7 @@ public class Form1 extends JFrame
         toolBar.addSeparator();
         toolBar.add(thisDetail);
         toolBar.addSeparator();
-        toolBar.add(onRasclad);
-        
-		
+        toolBar.add(onRasclad);	
 		
 		canvas.getViewport().setPreferredSize(new Dimension(850, 0));
 		hierarchy.getViewport().setPreferredSize(new Dimension(200, 0));

@@ -300,6 +300,25 @@ public class Product {//Класс для описания абстрактно�
     		root.add(file);  		
     	}
     }
+    public void generateTestDetails() 
+    {
+    	details.clear();
+    	int n = 0;
+		var input = JOptionPane.showInputDialog("Число тестовых лекал: ", 10);
+		if (input != null) n = Integer.parseInt(input);
+		
+		if(n < 1 || n > 100) 
+		{
+			 JOptionPane.showMessageDialog(null, "Введено некорректное число деталей!", "Ошибка", JOptionPane.ERROR_MESSAGE);
+			 return;
+		}
+		for(int i = 0; i < n; i++) 
+		{
+			var detail = new Detail();
+			detail.generateDots();
+			details.add(detail);
+		}
+    }
     public Boolean collision() 
     {
         for (int i = 0; i < details.size() - 1; i++) 
