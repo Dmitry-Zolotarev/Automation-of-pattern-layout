@@ -40,7 +40,7 @@ public class Detail {//Класс детали
 	    for (int i = 0; i < n; i++) {
 	        float x = (float)Math.random();
 	        float y = (float)Math.random();
-	        pts.add(new Dot(x, y));
+	        pts.add(new Dot(x / 2, y / 2));
 	    }
 
 	    float cx = 0f, cy = 0f;
@@ -51,8 +51,7 @@ public class Detail {//Класс детали
 	    cx /= n;
 	    cy /= n;
 
-	    final float fcx = cx;
-	    final float fcy = cy;
+	    final float fcx = cx, fcy = cy;
 
 	    pts.sort((a, b) -> {
 	        double angA = Math.atan2(a.Y - fcy, a.X - fcx);
