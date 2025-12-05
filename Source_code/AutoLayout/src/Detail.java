@@ -33,18 +33,40 @@ public class Detail {//Класс детали
 	        vertices.add(current, vertex);
 	    }
 	}
-	public void generateDots() 
-	{
-		int n = (int)(Math.random() * 8) + 3;
-		for(int i = 0; i < n; i++) 
-		{
-			float x = (float)Math.random(), y = (float)Math.random();
-			vertices.add(new Dot(x / 2, y / 2));
-		}
-		normalize();
-		//for(int i = 0; i < vertices.size(); i++) vertices.get(i).normalize();
-		
+	public void generateDots() {
+	    int n = (int)(Math.random() * 18) + 3;
+	    ArrayList<Dot> pts = new ArrayList<>();
+
+	    for (int i = 0; i < n; i++) {
+	        float x = (float)Math.random();
+	        float y = (float)Math.random();
+	        pts.add(new Dot(x, y));
+	    }
+
+	    float cx = 0f, cy = 0f;
+	    for (Dot d : pts) {
+	        cx += d.X;
+	        cy += d.Y;
+	    }
+	    cx /= n;
+	    cy /= n;
+
+	    final float fcx = cx;
+	    final float fcy = cy;
+
+	    pts.sort((a, b) -> {
+	        double angA = Math.atan2(a.Y - fcy, a.X - fcx);
+	        double angB = Math.atan2(b.Y - fcy, b.X - fcx);
+	        return Double.compare(angA, angB);
+	    });
+
+	    vertices.clear();
+	    vertices.addAll(pts);
+	    normalize();
 	}
+
+
+
 	public void normalize() 
 	{
 		float minX = minX(), minY = minY();
