@@ -54,7 +54,7 @@ public class AI extends Thread {
                     d.normalize();	
                     l = (int) (Math.random() * 2);
                     if (l == 0) d.flipVertical();
-
+                    d.normalize();	
                     float H = previous.Ymax() + distance;
 
                     if (i > 0) {

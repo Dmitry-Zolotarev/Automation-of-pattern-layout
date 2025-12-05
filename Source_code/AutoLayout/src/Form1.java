@@ -406,6 +406,8 @@ public class Form1 extends JFrame
 		rotate2.setVisible(!product.rascladMode);
     	shiftX2.setVisible(!product.rascladMode);
     	shiftY2.setVisible(!product.rascladMode);
+    	
+    	generateItem.setVisible(!product.rascladMode);
     	//Сокрытие функций, недоступных в режиме раскладки
 		if(H != canvas.getHeight() || W != canvas.getWidth()) {
 			
