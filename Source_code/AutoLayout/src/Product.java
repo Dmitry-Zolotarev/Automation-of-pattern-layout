@@ -293,7 +293,7 @@ public class Product {//Класс для описания абстрактно�
         	
     		var input = JOptionPane.showInputDialog("Число тестовых лекал: ", 20);
     		if (input == null) return;
-    		
+    		n = Integer.parseInt(input);
     		if(n < 1 || n > 100) 
     		{
     			 JOptionPane.showMessageDialog(null, "Введено некорректное число!", "Ошибка", JOptionPane.ERROR_MESSAGE);
