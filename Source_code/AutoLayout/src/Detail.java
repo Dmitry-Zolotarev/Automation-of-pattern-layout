@@ -64,8 +64,6 @@ public class Detail {//Класс детали
 	    normalize();
 	}
 
-
-
 	public void normalize() 
 	{
 		float minX = minX(), minY = minY();
@@ -98,7 +96,40 @@ public class Detail {//Класс детали
 		for(var v: vertices) if(v.Y < min) min = v.Y;
 		return min;
 	};
+		
+	// Сдвиг деталей влево и вниз, пока не будет пересечения с другой деталью или краем полотна
+	public void packX(ArrayList<Detail> used, float delta, float distance) {
+	    float minX = minX();
+	    boolean flag = true;
+	    while (flag && minX >= delta) {
+	        shiftX(-delta);
+	        minX -= delta;
+	        for (int j = used.size() - 1; j >= 0; j--) {
+	            if (intersects(used.get(j))) {
+	                flag = false;
+	                shiftX(delta + distance);
+	                break;
+	            }
+	        }
+	    }
+	}
+	public void packY(ArrayList<Detail> used, float delta, float distance) {
+	    float minY = minY();
+	    boolean flag = true;
+	    while (flag && minY >= delta) {
+	        shiftY(-delta);
+	        minY -= delta;
+	        for (int j = used.size() - 1; j >= 0; j--) {
+	            if (intersects(used.get(j))) {
+	                flag = false;
+	                shiftY(delta + distance);
+	                break;
+	            }
+	        }
+	    }
+	}	
 	//Сдвиг деталей
+	
 	public void shiftX(float shift) 
 	{
 		for(int i = 0; i < vertices.size(); i++) vertices.get(i).X += shift;

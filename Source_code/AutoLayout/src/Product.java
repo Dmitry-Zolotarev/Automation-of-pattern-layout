@@ -111,61 +111,48 @@ public class Product {//Класс для описания абстрактно�
     		}
     		else if (H > height) details.get(i).rotate(90);
     	}
-    	if(mode == 1) 
-    	{//Режим 1 - быстрая раскладка деталей по убыванию их ширины со сдвигом влево и вверх экрана.
-    		listWidth = 0;
-    		Product t = new Product(this, 1);
-    		t.SortDetails();
-    		
-    		for(int i = 0; i < t.details.size(); i++) {
-    			Detail d = t.details.get(i);		
-        		if(i > 0) {
-        			float H = t.details.get(i - 1).Ymax() + distance;
-        			if(H + d.Ymax() > height) {
-        				d.rotate(90);
-        				d.normalize();
-        			}
-        			if(H + d.Ymax() <= height) d.shiftY(H);
-        			else {
-        				d.rotate(-90);
-        				d.normalize();
-        			}
-        			d.shiftX(listWidth + distance);
-        		}//Сдвиг деталей влево и вверх, пока не будет пересения с другой деталью, либо с краем полотна.
-        		float minX = d.minX(), minY = d.minY(), delta = 0.01f;
-        		for(Boolean flag = true; flag && minX >= delta; d.shiftX(-delta), minX -= delta)
-        			for(int j = i - 1; j >= 0; j--) {
-        				if(d.intersects(t.details.get(j)) ) {
-            				flag = false; 
-            				d.shiftX(delta * 2f + distance);
-            				break;
-            			}
-        			}		
-        		for(Boolean flag = true; flag && minY >= delta; d.shiftY(-delta), minY -= delta)
-        			for(int j = i - 1; j >= 0; j--) {
-        				if(d.intersects(t.details.get(j)) ) {
-            				flag = false; 
-            				d.shiftY(delta * 2f + distance);
-            				break;
-            			}
-        			}
-            			
-        		details.get(d.index).vertices = d.vertices;
-        		if(d.Xmax() > listWidth) listWidth = d.Xmax(); 	
-    		}	
-    	}//Режим 2 - ракладка при помощи нелинейного эвристического алгоритма с элементами ИИ.
-    	else AImode(distance, height);
+    	fastLayout();
+    	if(mode == 2) AILayout(distance, height);
     	return true;
     }
-	private void AImode(float distance, float height) {  
+	private void fastLayout() {
+	    listWidth = 0;
+	    Product t = new Product(this, 1);
+	    t.SortDetails();
+
+	    ArrayList<Detail> used = new ArrayList<>();
+
+	    for (int i = 0; i < t.details.size(); i++) {
+	        Detail d = t.details.get(i);
+	        if (i > 0) {
+	            float H = used.get(used.size() - 1).Ymax() + distance;
+	            if (H + d.Ymax() > listHeight) {
+	                d.rotate(90);
+	                d.normalize();
+	            }
+	            if (H + d.Ymax() <= listHeight) d.shiftY(H);
+	            else {
+	                d.rotate(-90);
+	                d.normalize();
+	            }
+	            d.shiftX(listWidth + distance);
+	        }
+	        d.packX(used, 0.01f, distance);
+	        d.packY(used, 0.01f, distance);
+	        details.get(d.index).vertices = d.vertices;
+	        if (d.Xmax() > listWidth) listWidth = d.Xmax();
+	        used.add(d);
+	    }
+	}
+
+	private void AILayout(float distance, float height) {  
 		try {
-			int n = details.size(), accuracy = 0;
 			var input = JOptionPane.showInputDialog("Число просчётов ИИ-раскладки, влияющее на её эффективность: ", 1000);
 			if(input == null) {
 				main.setVisible(true);
 				return;
 			}
-			accuracy = Integer.parseInt(input) * n;	
+			int accuracy = Integer.parseInt(input) * totalVertices();	
 			findRect(height, 1);
 			Detail d = new Detail();
 			//Инициализация окна, показывающего процент завершения раскладки.
@@ -289,9 +276,7 @@ public class Product {//Класс для описания абстрактно�
 	        StreamResult result = new StreamResult(new File(xmlFilePath));
 	        transformer.transform(source, result);
 	        JOptionPane.showMessageDialog(null, "Данные сохранены в файл " + xmlFilePath, "Сообщение", JOptionPane.INFORMATION_MESSAGE);
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+	    } catch (Exception e) {  }
 	}
     public void updateTree() {
     	root = new DefaultMutableTreeNode(name);
@@ -302,22 +287,34 @@ public class Product {//Класс для описания абстрактно�
     }
     public void generateTestDetails() 
     {
-    	details.clear();
-    	int n = 0;
-		var input = JOptionPane.showInputDialog("Число тестовых лекал: ", 10);
-		if (input != null) n = Integer.parseInt(input);
-		
-		if(n < 1 || n > 100) 
-		{
-			 JOptionPane.showMessageDialog(null, "Введено некорректное число деталей!", "Ошибка", JOptionPane.ERROR_MESSAGE);
-			 return;
-		}
-		for(int i = 0; i < n; i++) 
-		{
-			var detail = new Detail();
-			detail.generateDots();
-			details.add(detail);
-		}
+    	try {
+    		details.clear();
+        	int n = 0;
+    		var input = JOptionPane.showInputDialog("Число тестовых лекал: ", 20);
+    		if (input != null) n = Integer.parseInt(input);
+    		
+    		if(n < 1 || n > 100) 
+    		{
+    			 JOptionPane.showMessageDialog(null, "Введено некорректное число!", "Ошибка", JOptionPane.ERROR_MESSAGE);
+    			 return;
+    		}
+    		for(int i = 0; i < n; i++) 
+    		{
+    			var detail = new Detail();
+    			detail.generateDots();
+    			details.add(detail);
+    		}
+    	}
+    	catch(Exception e) {
+    		
+    	} 	
+    }
+    public float findListWidth() 
+    {
+    	for(var d: details) {
+    		if(d.Xmax() > listWidth) listWidth = d.Xmax();
+    	}
+    	return listWidth;
     }
     public Boolean collision() 
     {
