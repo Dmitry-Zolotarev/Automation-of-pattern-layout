@@ -290,8 +290,9 @@ public class Product {//Класс для описания абстрактно�
     	try {
     		details.clear();
         	int n = 0;
+        	
     		var input = JOptionPane.showInputDialog("Число тестовых лекал: ", 20);
-    		if (input != null) n = Integer.parseInt(input);
+    		if (input == null) return;
     		
     		if(n < 1 || n > 100) 
     		{
