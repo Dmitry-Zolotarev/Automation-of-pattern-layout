@@ -253,8 +253,8 @@ public class Product {//Класс для описания абстрактно�
 		                detailElement.setAttribute("На_раскладку", Boolean.toString(detail.onRasclad));
 		                for (Dot vertex : detail.vertices) {
 		                    Element vertexElement = doc.createElement("Точка");
-		                    vertexElement.setAttribute("X", String.valueOf(vertex.X));
-		                    vertexElement.setAttribute("Y", String.valueOf(vertex.Y));
+		                    vertexElement.setAttribute("X", String.format("%.4f", vertex.X));
+		                    vertexElement.setAttribute("Y", String.format("%.4f", vertex.Y));
 		                    detailElement.appendChild(vertexElement);
 		                }	                
 		                productElement.appendChild(detailElement);
